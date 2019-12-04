@@ -3,8 +3,12 @@ from bluepy.btle import DefaultDelegate, BTLEException
 import logging
 
 class BLE_interface():
-    def __init__(self, addr_str):
+    def __init__(self, addr_str, write_uuid):
         self.dev = Peripheral(deviceAddr=addr_str)
+        self.write_uuid = UUID(write_uuid)
+        self._write_charac = self.dev.getCharacteristics(uuid=self.write_uuid)[0]
+        # TODO change to catch GattError
+        assert self._write_charac.uuid == self.write_uuid, "No characteristic with specified UUID!"
         status = self.dev.status()
         logging.debug(status)
         logging.info(f'Device {addr_str} state change to {status["state"][0]}')
@@ -16,6 +20,10 @@ class BLE_interface():
             for char in service.getCharacteristics():
                 print('Characteristic', char.uuid, char.propertiesToString())
 
+    def send(self, data):
+        logging.debug(f'Sending {data}')
+        self._write_charac.write(data)
+
     def set_receiver(self, callback):
         logging.info('Receiver set up')
         self.dev.setDelegate(ReceiverDelegate(callback))
@@ -26,7 +34,7 @@ class BLE_interface():
 
     def shutdown(self):
         self.dev.disconnect()
-        logging.info('Shutting down...')
+        logging.info('BT disconnected')
 
 
 class ReceiverDelegate(DefaultDelegate):
