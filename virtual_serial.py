@@ -5,7 +5,7 @@ class UART:
         master, slave = pty.openpty()
         self._master = master
         self.endpoint = os.ttyname(slave)
-        logging.info(f'Slave {self.endpoint}')
+        logging.info(f'Slave created on {self.endpoint}')
 
     def read_sync(self):
         value = os.read(self._master, 1024)
