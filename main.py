@@ -1,12 +1,18 @@
 from virtual_serial import UART
 from interface import BLE_interface
 from bluepy.btle import BTLEDisconnectError
-import logging, sys
+import logging, sys, argparse
+
+parser = argparse.ArgumentParser(description='Create virtual serial ports from BLE devices.')
+parser.add_argument('-v', dest='verbose', action='store_true',
+    help='Increase verbosity (logs all data going through)')
+args = parser.parse_args()
+print(args)
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)d | %(levelname)s | %(filename)s: %(message)s', 
     datefmt='%H:%M:%S',
-    level=logging.DEBUG
+    level=logging.DEBUG if args.verbose else logging.INFO
 )
 
 addr_str = '20:91:48:4c:4c:54'
@@ -20,7 +26,7 @@ if __name__ == '__main__':
         bt = BLE_interface(addr_str, write_uid)
         bt.set_receiver(uart.write_sync)
         uart.set_receiver(bt.send)
-        
+
         logging.info('Running main loop!')
         uart.start()
         while True:
