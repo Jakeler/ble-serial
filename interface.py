@@ -1,17 +1,23 @@
 from bluepy.btle import Peripheral, Characteristic, Service, UUID
 from bluepy.btle import DefaultDelegate, BTLEException
 import logging
+from constants import ble_chars
 
 class BLE_interface():
     def __init__(self, addr_str, write_uuid):
         self.dev = Peripheral(deviceAddr=addr_str)
         logging.info(f'Connected device {self.dev.addr}')
 
-        self.write_uuid = UUID(write_uuid)
+        if write_uuid:
+            self.write_uuid = [UUID(write_uuid)]
+        else:
+            self.write_uuid = [UUID(x) for x in ble_chars]
+            logging.debug(f'No write uuid specified, trying {ble_chars}')
         for c in self.dev.getCharacteristics():
-            if c.uuid == self.write_uuid:
+            if c.uuid in self.write_uuid:
                 self._write_charac = c
-                logging.debug(f'Found write characteristic {self._write_charac.uuid}')
+                self.write_uuid = self._write_charac.uuid
+                logging.debug(f'Found write characteristic {self.write_uuid}')
                 break
         assert hasattr(self, '_write_charac'), \
             "No characteristic with specified UUID found!"
