@@ -29,12 +29,6 @@ class BLE_interface():
         # logging.debug(status)
         # logging.info(f'Device {addr_str} state change to {status["state"][0]}')
 
-    def printDevInfo(self):
-        serv = self.dev.getServices()
-        for service in serv:
-            print('Service', service.uuid)
-            for char in service.getCharacteristics():
-                print('Characteristic', char.uuid, char.propertiesToString())
 
     def send(self, data):
         logging.debug(f'Sending {data}')
