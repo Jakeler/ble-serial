@@ -5,10 +5,19 @@ import logging
 class BLE_interface():
     def __init__(self, addr_str, write_uuid):
         self.dev = Peripheral(deviceAddr=addr_str)
+        logging.info(f'Connected device {self.dev.addr}')
+
         self.write_uuid = UUID(write_uuid)
-        self._write_charac = self.dev.getCharacteristics(uuid=self.write_uuid)[0]
-        # TODO change to catch GattError
-        assert self._write_charac.uuid == self.write_uuid, "No characteristic with specified UUID!"
+        for c in self.dev.getCharacteristics():
+            if c.uuid == self.write_uuid:
+                self._write_charac = c
+                logging.debug(f'Found write characteristic {self._write_charac.uuid}')
+                break
+        assert hasattr(self, '_write_charac'), \
+            "No characteristic with specified UUID found!"
+        assert (self._write_charac.properties & Characteristic.props["WRITE_NO_RESP"]), \
+            "Specified characteristic is not writable!"
+
         ### Status does not work with patches for wr response with threads...
         # status = self.dev.status()
         # logging.debug(status)
