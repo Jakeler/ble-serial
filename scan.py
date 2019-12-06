@@ -11,10 +11,11 @@ class ScanDelegate(DefaultDelegate):
             print("Received new data from", dev.addr)
 
 scanner = Scanner().withDelegate(ScanDelegate())
-devices = scanner.scan(5.0)
+devices = scanner.scan(1.0)
+print(f'Found {len(devices)} devices!\n')
 
 for dev in devices:
     print(f"Device {dev.addr} ({dev.addrType}), RSSI={dev.rssi} dB")
-    print(dev)
     for (adtype, desc, value) in dev.getScanData():
-        print(f"{adtype}: {desc} = {value}")
+        print(f"    {adtype:02x}: {desc} = {value}")
+    print()
