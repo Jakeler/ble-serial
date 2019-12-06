@@ -1,0 +1,3 @@
+[submodule "bluepy-repo"]
+	path = bluepy-repo
+	url = https://github.com/edwios/bluepy.git

@@ -9,9 +9,10 @@ class BLE_interface():
         self._write_charac = self.dev.getCharacteristics(uuid=self.write_uuid)[0]
         # TODO change to catch GattError
         assert self._write_charac.uuid == self.write_uuid, "No characteristic with specified UUID!"
-        status = self.dev.status()
-        logging.debug(status)
-        logging.info(f'Device {addr_str} state change to {status["state"][0]}')
+        ### Status does not work with patches for wr response with threads...
+        # status = self.dev.status()
+        # logging.debug(status)
+        # logging.info(f'Device {addr_str} state change to {status["state"][0]}')
 
     def printDevInfo(self):
         serv = self.dev.getServices()
@@ -22,7 +23,7 @@ class BLE_interface():
 
     def send(self, data):
         logging.debug(f'Sending {data}')
-        self._write_charac.write(data)
+        self._write_charac.write(data, withResponse=False)
 
     def set_receiver(self, callback):
         logging.info('Receiver set up')
@@ -30,7 +31,7 @@ class BLE_interface():
 
     def receive_loop(self):
         assert isinstance(self.dev.delegate, ReceiverDelegate), 'Callback must be set before receive loop!'
-        self.dev.waitForNotifications(1.0)
+        self.dev.waitForNotifications(3.0)
 
     def shutdown(self):
         self.dev.disconnect()
