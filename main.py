@@ -7,9 +7,9 @@ parser = argparse.ArgumentParser(description='Create virtual serial ports from B
 parser.add_argument('-v', dest='verbose', action='store_true',
     help='Increase verbosity (logs all data going through)')
 parser.add_argument('-d', '--dev', dest='device', required=True,
-    help='BLE device address to connect (hex)')
+    help='BLE device address to connect (hex format, can be seperated by colons)')
 parser.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
-    help='The GATT chracteristic to write the serial data, you might use "scan.py -v" to find it out')
+    help='The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out')
 args = parser.parse_args()
 
 logging.basicConfig(

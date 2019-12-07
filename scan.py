@@ -1,4 +1,14 @@
 from bluepy.btle import Scanner, DefaultDelegate, ScanEntry, Peripheral, BTLEException
+import argparse
+
+parser = argparse.ArgumentParser(
+    description='Scanner for BLE devices and service/characteristcs. ROOT required.',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('-t', '--scan-time', dest='sec', default=5.0, type=float, 
+    help='Duration of the scan in seconds')
+parser.add_argument('-d', '--deep-scan', dest='deep', action='store_true',
+    help='Try to connect to the devices and read out the service/characteristic UUIDs')
+args = parser.parse_args()
 
 class ScanDelegate(DefaultDelegate):
     def __init__(self):
@@ -39,4 +49,4 @@ def print_dev(dev):
             print('    Characteristic:', char.uuid, char.propertiesToString())
 
 if __name__ == '__main__':
-    scan(3.0, True)
+    scan(args.sec, args.deep)
