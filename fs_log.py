@@ -13,7 +13,7 @@ class FS_log:
     def middleware(self, dir: Direction, passthrough_func):
         def ret_func(data):
             passthrough_func(data)
-            self.file.write(f'{dir}: Hex: {data.hex("_")}\t Bytes: {data} \n')
+            self.file.write(f'{dir}: {data.hex(" ")}\n')
         return ret_func
 
     def finish(self):
