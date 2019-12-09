@@ -1,5 +1,6 @@
 from virtual_serial import UART
 from interface import BLE_interface
+from fs_log import FS_log, Direction
 from bluepy.btle import BTLEDisconnectError
 import logging, sys, argparse
 
@@ -10,6 +11,8 @@ parser.add_argument('-d', '--dev', dest='device', required=True,
     help='BLE device address to connect (hex format, can be seperated by colons)')
 parser.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
     help='The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out')
+parser.add_argument('-l', '--log', dest='filename', required=False,
+    help='Enable optional logging of all bluetooth traffic to file')
 args = parser.parse_args()
 
 logging.basicConfig(
@@ -22,9 +25,13 @@ if __name__ == '__main__':
     try:
         uart = UART()
         bt = BLE_interface(args.device, args.write_uuid)
-        bt.set_receiver(uart.write_sync)
-        uart.set_receiver(bt.send)
-
+        if args.filename:
+            log = FS_log(args.filename)
+            bt.set_receiver(log.middleware(Direction.BLE_IN, uart.write_sync))
+            uart.set_receiver(log.middleware(Direction.BLE_OUT, bt.send))
+        else:
+            bt.set_receiver(uart.write_sync)
+            uart.set_receiver(bt.send)
         logging.info('Running main loop!')
         uart.start()
         while True:
@@ -33,6 +40,8 @@ if __name__ == '__main__':
         logging.warning('Shutdown initiated')
         uart.stop()
         bt.shutdown()
+        if args.filename:
+            log.finish()
         logging.info('Shutdown complete.')
         exit(0)
     except Exception as e:

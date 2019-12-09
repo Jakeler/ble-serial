@@ -30,7 +30,7 @@ class BLE_interface():
         # logging.info(f'Device {addr_str} state change to {status["state"][0]}')
 
 
-    def send(self, data):
+    def send(self, data: bytes):
         logging.debug(f'Sending {data}')
         self._write_charac.write(data, withResponse=False)
 
