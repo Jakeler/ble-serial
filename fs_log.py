@@ -7,7 +7,7 @@ class Direction:
 
 class FS_log:
     def __init__(self, filename):
-        self.file = open(filename, "w+")
+        self.file = open(filename, "a+")
         logging.info(f'Logging transfered data to {filename=}')
 
     def middleware(self, dir: Direction, passthrough_func):
@@ -18,3 +18,4 @@ class FS_log:
 
     def finish(self):
         self.file.close()
+        logging.info(f'Logfile closed')

@@ -36,7 +36,13 @@ if __name__ == '__main__':
         uart.start()
         while True:
             bt.receive_loop()
-    except (BTLEDisconnectError, KeyboardInterrupt):
+    except BTLEDisconnectError:
+        logging.warning('Bluetooth connection lost')
+    except KeyboardInterrupt:
+        logging.info('Keyboard interrupt received')
+    except Exception as e:
+        logging.error(f'Unexpected Error: {e}')
+    finally:
         logging.warning('Shutdown initiated')
         uart.stop()
         bt.shutdown()
@@ -44,5 +50,3 @@ if __name__ == '__main__':
             log.finish()
         logging.info('Shutdown complete.')
         exit(0)
-    except Exception as e:
-        logging.error(f'Unexpected Error: {e}')
