@@ -1,4 +1,4 @@
-import os, pty, logging
+import os, pty, tty, termios, logging
 from select import select
 from threading import Thread
 
@@ -8,6 +8,7 @@ class UART(Thread):
         self.running = True
 
         master, slave = pty.openpty()
+        tty.setraw(master, termios.TCSANOW)
         self._master = master
         self.endpoint = os.ttyname(slave)
         logging.info(f'Slave created on {self.endpoint}')
