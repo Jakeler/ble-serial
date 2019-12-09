@@ -1,7 +1,7 @@
 from bluepy.btle import Peripheral, Characteristic, Service, UUID
 from bluepy.btle import DefaultDelegate, BTLEException
 import logging
-from constants import ble_chars
+from ble_serial.constants import ble_chars
 
 class BLE_interface():
     def __init__(self, addr_str, write_uuid):

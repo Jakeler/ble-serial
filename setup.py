@@ -19,4 +19,10 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
+    entry_points={
+        'console_scripts': [
+            'ble-scan=ble_serial.scan:main',
+            'ble-serial=ble_serial.__main__:main',
+        ]
+    },
 )
