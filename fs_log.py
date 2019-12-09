@@ -1,4 +1,4 @@
-import logging
+import logging, datetime
 from enum import Enum
 
 class Direction:
@@ -13,7 +13,8 @@ class FS_log:
     def middleware(self, dir: Direction, passthrough_func):
         def ret_func(data):
             passthrough_func(data)
-            self.file.write(f'{dir}: {data.hex(" ")}\n')
+            t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            self.file.write(f'{t} {dir}: {data.hex(" ")}\n')
         return ret_func
 
     def finish(self):
