@@ -5,7 +5,7 @@ with open("README-pypi.md", "r") as fh:
 
 setuptools.setup(
     name="ble-serial",
-    version="1.0.0",
+    version="1.0.1",
     author="Jake",
     author_email="ble-serial-pypi@ja-ke.tech",
     description="A package to connect BLE serial adapters",
