@@ -1,3 +1,4 @@
+# BLE Serial
 A tool to connect Bluetooth 4.0+ Low Energy to UART modules and normal PCs/laptops/RaspberryPi. 
 It fulfills the same purpose as `rfcomm bind` for the old Bluetooth 2.0, creating a virtual serial port in `/dev/pts/x`, which makes it usable with any terminal or application.
 
@@ -84,18 +85,19 @@ The `ble-serial` tool itself has a few more options:
                         The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out
   -l FILENAME, --log FILENAME
                         Enable optional logging of all bluetooth traffic to file
+  -p PORT, --port PORT  Symlink to virtual serial port (default = /tmp/ttyBLE)
 ```
 Only the device address is always required:
 ```
 $ ble-serial -d 20:91:48:4c:4c:54
 ```
 ```
-21:02:55.823 | INFO | virtual_serial.py: Slave created on /dev/pts/3
+21:02:55.823 | INFO | virtual_serial.py: Slave created on /tmp/ttyBLE -> /dev/pts/8
 21:02:56.410 | INFO | interface.py: Connected device 20:91:48:4c:4c:54
 21:02:56.909 | INFO | interface.py: Receiver set up
 21:02:56.909 | INFO | __main__.py: Running main loop!
 ```
-This log shows a successful start, the virtual serial port was opened on `/dev/pts/3` in this case (the number at the end changes, depending on how many pseudo terminals are already open on the system). 
+This log shows a successful start, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. In addition it creates automatically a symlink to `/tmp/ttyBLE`, so you can easily access it there always on the same file, the default can be changed with the `-p`/`--port` option.
 
 Now it is possible to use any serial monitor program, just connect to that port, baud rate etc. does not matter, it will work with any value (ignored it is only virtual).
 The software acts as transparent bridge, everything that is sent to that virtual port gets transmitted to the BLE module and comes out of the TX pin there. Same in the other direction, everything that the BLE module receives on the RX pin gets transmitted to the PC and shows up in the virtual serial port. This makes also possible to add ble module to create a wireless serial connection with existing hard/software.
