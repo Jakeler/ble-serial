@@ -23,7 +23,7 @@ def main():
     )
 
     try:
-        uart = UART()
+        uart = UART('/tmp/ttyBLE')
         bt = BLE_interface(args.device, args.write_uuid)
         if args.filename:
             log = FS_log(args.filename)
