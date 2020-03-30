@@ -14,6 +14,8 @@ def main():
         help='The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out')
     parser.add_argument('-l', '--log', dest='filename', required=False,
         help='Enable optional logging of all bluetooth traffic to file')
+    parser.add_argument('-p', '--port', dest='port', required=False, default='/tmp/ttyBLE',
+        help='Symlink to virtual serial port (default = /tmp/ttyBLE)')
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -23,7 +25,7 @@ def main():
     )
 
     try:
-        uart = UART('/tmp/ttyBLE')
+        uart = UART(args.port)
         bt = BLE_interface(args.device, args.write_uuid)
         if args.filename:
             log = FS_log(args.filename)
