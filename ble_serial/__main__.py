@@ -44,7 +44,8 @@ def main():
         logging.error(f'Unexpected Error: {e}')
     finally:
         logging.warning('Shutdown initiated')
-        uart.stop()
+        if 'uart' in locals():
+            uart.stop()
         if 'bt' in locals():
             bt.shutdown()
         if args.filename:
