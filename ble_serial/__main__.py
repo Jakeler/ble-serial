@@ -1,4 +1,4 @@
-import logging, sys, argparse
+import logging, sys, argparse, time
 from ble_serial.virtual_serial import UART
 from ble_serial.interface import BLE_interface
 from ble_serial.fs_log import FS_log, Direction
@@ -45,7 +45,8 @@ def main():
     finally:
         logging.warning('Shutdown initiated')
         uart.stop()
-        bt.shutdown()
+        if 'bt' in locals():
+            bt.shutdown()
         if args.filename:
             log.finish()
         logging.info('Shutdown complete.')
