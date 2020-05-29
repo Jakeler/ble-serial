@@ -50,7 +50,7 @@ def main():
             uart.stop()
         if 'bt' in locals():
             bt.shutdown()
-        if args.filename:
+        if 'log' in locals():
             log.finish()
         logging.info('Shutdown complete.')
         exit(0)
