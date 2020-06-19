@@ -12,6 +12,8 @@ def main():
         help='Increase verbosity (logs all data going through)')
     parser.add_argument('-d', '--dev', dest='device', required=True,
         help='BLE device address to connect (hex format, can be seperated by colons)')
+    parser.add_argument('-t', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
+        help='BLE address type, either public or random')
     parser.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
         help='The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out')
     parser.add_argument('-l', '--log', dest='filename', required=False,
@@ -28,7 +30,7 @@ def main():
 
     try:
         uart = UART(args.port)
-        bt = BLE_interface(args.device, args.write_uuid)
+        bt = BLE_interface(args.device, args.addr_type, args.write_uuid)
         if args.filename:
             log = FS_log(args.filename)
             bt.set_receiver(log.middleware(Direction.BLE_IN, uart.write_sync))

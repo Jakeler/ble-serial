@@ -4,8 +4,8 @@ import logging
 from ble_serial.constants import ble_chars
 
 class BLE_interface():
-    def __init__(self, addr_str, write_uuid):
-        self.dev = Peripheral(deviceAddr=addr_str)
+    def __init__(self, addr_str, addr_type, write_uuid):
+        self.dev = Peripheral(deviceAddr=addr_str, addrType=addr_type)
         logging.info(f'Connected device {self.dev.addr}')
 
         if write_uuid:
