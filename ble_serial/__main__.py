@@ -5,7 +5,9 @@ from ble_serial.fs_log import FS_log, Direction
 from bluepy.btle import BTLEDisconnectError
 
 def main():
-    parser = argparse.ArgumentParser(description='Create virtual serial ports from BLE devices.')
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
+        description='Create virtual serial ports from BLE devices.')
+    
     parser.add_argument('-v', dest='verbose', action='store_true',
         help='Increase verbosity (logs all data going through)')
     parser.add_argument('-d', '--dev', dest='device', required=True,
@@ -15,7 +17,7 @@ def main():
     parser.add_argument('-l', '--log', dest='filename', required=False,
         help='Enable optional logging of all bluetooth traffic to file')
     parser.add_argument('-p', '--port', dest='port', required=False, default='/tmp/ttyBLE',
-        help='Symlink to virtual serial port (default = /tmp/ttyBLE)')
+        help='Symlink to virtual serial port')
     args = parser.parse_args()
 
     logging.basicConfig(
