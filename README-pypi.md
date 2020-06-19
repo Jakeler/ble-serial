@@ -12,6 +12,15 @@ If you are wondering why the second command is required: It depends on the bluep
 
 Now you should have 2 new scripts: `ble-scan` and the main `ble-serial`.
 
+Note: To be able to run scripts without using `sudo` or root, you must grant the `bluepy-helper` binary additional [capabilities/permissions](https://github.com/IanHarvey/bluepy/issues/313#issuecomment-428324639). Follow the steps outlined below:
+
+Find bluepy-helper (typically ~/.local/lib/python3.6/site-packages/bluepy/bluepy-helper).
+
+Give it permissions so you don't have to run scripts with sudo:
+```sh
+sudo setcap 'cap_net_raw,cap_net_admin+eip' bluepy-helper`
+```
+
 ### Finding devices
 First make sure the bluetooth adapter is enabled, for example with `bluetoothctl power on`, then the scan function can be used (note: root is required for this step):
 ```
