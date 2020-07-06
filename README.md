@@ -127,4 +127,8 @@ cat demo.txt
 2019-12-09 21:15:53.999795 -> BLE-IN: b0 b0 b0 b0 b0 b0 3b b0 b0 b0 ba b0 0d 8a
 ```
 
-As always, i hope it was helpful. If you encounter problems, please use the issue tracker on [GitHub](https://github.com/Jakeler/ble-serial).
+As always, i hope it was helpful. If you encounter problems, please use the issue tracker on [GitHub](https://github.com/Jakeler/ble-serial/issues).
+
+### Known limitations
+* Higher bitrates: 9600 bit/s is well tested and works fine. 19200 and higher can cause data loss on longer transmissions.
+* Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. Read more in [issue #6](https://github.com/Jakeler/ble-serial/issues/6).
