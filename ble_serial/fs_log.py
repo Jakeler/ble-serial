@@ -14,7 +14,7 @@ class FS_log:
         def ret_func(data):
             passthrough_func(data)
             t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            self.file.write(f'{t} {dir}: {data.hex(" ")}\n')
+            self.file.write(f'{t} {dir}: {data.hex()}\n')
         return ret_func
 
     def finish(self):
