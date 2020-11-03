@@ -22,6 +22,8 @@ def main():
         help='Enable optional logging of all bluetooth traffic to file')
     parser.add_argument('-p', '--port', dest='port', required=False, default='/tmp/ttyBLE',
         help='Symlink to virtual serial port')
+    parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
+        help='The GATT characteristic to subscribe to notifications to read the serial data')
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -32,7 +34,7 @@ def main():
 
     try:
         uart = UART(args.port)
-        bt = BLE_interface(args.device, args.addr_type, args.adapter, args.write_uuid)
+        bt = BLE_interface(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
         if args.filename:
             log = FS_log(args.filename)
             bt.set_receiver(log.middleware(Direction.BLE_IN, uart.write_sync))
