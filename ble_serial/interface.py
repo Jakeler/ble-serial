@@ -4,7 +4,7 @@ import logging
 from ble_serial.constants import ble_chars
 
 class BLE_interface():
-    def __init__(self, addr_str, addr_type, adapter, write_uuid,):
+    def __init__(self, addr_str, addr_type, adapter, write_uuid, read_uuid,):
         self.dev = Peripheral(deviceAddr=addr_str, addrType=addr_type, iface=adapter)
         logging.info(f'Connected device {self.dev.addr}')
 
@@ -24,11 +24,27 @@ class BLE_interface():
         assert (self._write_charac.properties & Characteristic.props["WRITE_NO_RESP"]), \
             "Specified characteristic is not writable!"
 
-        ### Status does not work with patches for wr response with threads...
-        # status = self.dev.status()
-        # logging.debug(status)
-        # logging.info(f'Device {addr_str} state change to {status["state"][0]}')
-
+        # Only subscribe to read_uuid notifications if it was specified
+        if read_uuid:
+            self.read_uuid = [UUID(read_uuid)]
+            for c in self.dev.getCharacteristics():
+                if c.uuid in self.read_uuid:
+                    self._read_charac = c
+                    self.read_uuid = self._read_charac.uuid
+                    logging.debug(f'Found read characteristic {self.read_uuid}')
+                    break
+            assert hasattr(self, '_read_charac'), \
+                "No read characteristic with specified UUID found!"
+            assert (self._read_charac.properties & Characteristic.props["NOTIFY"]), \
+                "Specified read characteristic is not notifiable!"
+            # Attempt to subscribe to notification now (write CCCD)
+            # First get the Client Characteristic Configuration Descriptor
+            self._read_charac_cccd = self._read_charac.getDescriptors(0x2902)
+            assert (self._read_charac_cccd is not None), \
+                "Could not find CCCD for given read UUID!"
+            self._read_charac_cccd = self._read_charac_cccd[0]
+            # Now write that we want notifications from this UUID
+            self._read_charac_cccd.write(bytes([0x01, 0x00]))
 
     def send(self, data: bytes):
         logging.debug(f'Sending {data}')
