@@ -20,6 +20,8 @@ def main():
         help='The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out')
     parser.add_argument('-l', '--log', dest='filename', required=False,
         help='Enable optional logging of all bluetooth traffic to file')
+    parser.add_argument('-b', '--binary', dest='binlog', required=False, action='store_true',
+        help='Log data as raw binary, disable transformation to hex. Works only in combination with -l')
     parser.add_argument('-p', '--port', dest='port', required=False, default='/tmp/ttyBLE',
         help='Symlink to virtual serial port')
     parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
@@ -36,7 +38,7 @@ def main():
         uart = UART(args.port)
         bt = BLE_interface(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
         if args.filename:
-            log = FS_log(args.filename)
+            log = FS_log(args.filename, args.binlog)
             bt.set_receiver(log.middleware(Direction.BLE_IN, uart.write_sync))
             uart.set_receiver(log.middleware(Direction.BLE_OUT, bt.send))
         else:
