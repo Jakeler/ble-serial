@@ -8,8 +8,8 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
         description='Create virtual serial ports from BLE devices.')
     
-    parser.add_argument('-v', dest='verbose', action='store_true',
-        help='Increase verbosity (logs all data going through)')
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
+        help='Increase verbosity to log all data going through')
     parser.add_argument('-d', '--dev', dest='device', required=True,
         help='BLE device address to connect (hex format, can be seperated by colons)')
     parser.add_argument('-t', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
