@@ -12,17 +12,16 @@ If you are wondering why the second command is required: It depends on the bluep
 
 Now you should have 2 new scripts: `ble-scan` and the main `ble-serial`.
 
-Note: To be able to run scripts without using `sudo` or root, you must grant the `bluepy-helper` binary additional [capabilities/permissions](https://github.com/IanHarvey/bluepy/issues/313#issuecomment-428324639). Follow the steps outlined below:
+Note: To be able to do device scans without using `sudo` or root, you must grant the `bluepy-helper` binary additional [capabilities/permissions](https://github.com/IanHarvey/bluepy/issues/313#issuecomment-428324639). Follow the steps outlined below:
 
 Find bluepy-helper (typically ~/.local/lib/python3.6/site-packages/bluepy/bluepy-helper).
-
 Give it permissions so you don't have to run scripts with sudo:
 ```sh
 sudo setcap 'cap_net_raw,cap_net_admin+eip' bluepy-helper`
 ```
 
 ### Finding devices
-First make sure the bluetooth adapter is enabled, for example with `bluetoothctl power on`, then the scan function can be used (note: root is required for this step):
+First make sure the bluetooth adapter is enabled, for example with `bluetoothctl power on`, then the scan function can be used (note: root is required for this step, if you have not added the capabilities above):
 ```
 # ble-scan
 ```
@@ -43,7 +42,7 @@ Device ...
 ```
 The output is a list of the recognized nearby devices. After the MAC address it prints out the device name, if it can be resolved.
 
-If there are devices not found it might help to increase the scan time. All discoverable devices must actively send advertisements, to save power the intervall of this can be quite slow, so try for example 30 seconds then.
+If there are no devices found it might help to increase the scan time. All discoverable devices must actively send advertisements, to save power the interval of this can be quite long, so then try for example 30 seconds.
 ```
 optional arguments:
   -h, --help            show this help message and exit
@@ -51,7 +50,7 @@ optional arguments:
                         Duration of the scan in seconds (default: 5.0)
   -d, --deep-scan       Try to connect to the devices and read out the service/characteristic UUIDs (default: False)
 ```
-On Bluetooth 2.0 there was a "serial port profile", with 4.0 BLE there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own ID to implement the features there. 
+On Bluetooth 2.0 there was a "serial port profile", with 4.0 BLE there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own ID to implement the features. 
 ```py
 '0000ff02-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter
 '0000ffe1-0000-1000-8000-00805f9b34fb', # TI CC245x (HM-10, HM-11)
@@ -59,7 +58,7 @@ On Bluetooth 2.0 there was a "serial port profile", with 4.0 BLE there is unfort
 Some usual IDs are included in ble-serial, these will be tried automatically if nothing is specified.
 You might skip this part and start directly with the connection.
 
-To find the correct ID otherwise i added a deep scan option, it will go through the devices and show all provided interfaces. This scan can take long, especially if there are many devices in the area, so only use it if you want to find the right write characteristic ID.
+Otherwise to find the correct ID, use the deep scan option, it will go through the devices and shows all provided interfaces. This scan can take long, especially if there are many devices in the area, so only use it if you want to find the right write characteristic ID.
 ```
 # ble-scan -d
 ```
@@ -108,10 +107,10 @@ $ ble-serial -d 20:91:48:4c:4c:54
 ```
 This log shows a successful start, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. In addition it creates automatically a symlink to `/tmp/ttyBLE`, so you can easily access it there always on the same file, the default can be changed with the `-p`/`--port` option.
 
-Now it is possible to use any serial monitor program, just connect to that port, baud rate etc. does not matter, it will work with any value (ignored it is only virtual).
-The software acts as transparent bridge, everything that is sent to that virtual port gets transmitted to the BLE module and comes out of the TX pin there. Same in the other direction, everything that the BLE module receives on the RX pin gets transmitted to the PC and shows up in the virtual serial port. This makes also possible to add ble module to create a wireless serial connection with existing hard/software.
+Now it is possible to use any serial monitor program, just connect to that port, baud rate etc. does not matter, it will work with any value (settings are ignored, because it is only virtual).
+The software acts as transparent bridge, everything that is sent to that virtual port gets transmitted to the BLE module and comes out of the TX pin there. Same in the other direction, everything that the BLE module receives on the RX pin gets transmitted to the PC and shows up in the virtual serial port. This makes it also possible to add ble module to create a wireless serial connection with existing hard/software.
 
-As mentioned before, the start might fail because the ID is not in the list, then you have can manually specify the correct characteristic ID like this:
+As mentioned before, the start might fail because the ID is not in the list, then you can manually specify the correct characteristic ID like this:
 ```
 $ ble-serial -d 20:91:48:4c:4c:54 -w 0000ffe1-0000-1000-8000-00805f9b34fb
 ```
@@ -131,4 +130,4 @@ As always, i hope it was helpful. If you encounter problems, please use the issu
 
 ### Known limitations
 * Higher bitrates: 9600 bit/s is well tested and works fine. 19200 and higher can cause data loss on longer transmissions.
-* Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. Read more in [issue #6](https://github.com/Jakeler/ble-serial/issues/6).
+* Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
