@@ -29,7 +29,7 @@ def main():
     args = parser.parse_args()
 
     logging.basicConfig(
-        format='%(asctime)s.%(msecs)d | %(levelname)s | %(filename)s: %(message)s', 
+        format='%(asctime)s.%(msecs)03d | %(levelname)s | %(filename)s: %(message)s', 
         datefmt='%H:%M:%S',
         level=logging.DEBUG if args.verbose else logging.INFO
     )
