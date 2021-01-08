@@ -86,14 +86,22 @@ After the (U)ID the permissions are listed. We are searching for a characteristi
 The `ble-serial` tool itself has a few more options:
 ```
   -h, --help            show this help message and exit
-  -v                    Increase verbosity (logs all data going through)
+  -v, --verbose         Increase verbosity to log all data going through (default: False)
   -d DEVICE, --dev DEVICE
-                        BLE device address to connect (hex format, can be seperated by colons)
+                        BLE device address to connect (hex format, can be seperated by colons) (default: None)
+  -t {public,random}, --address-type {public,random}
+                        BLE address type, either public or random (default: public)
+  -i ADAPTER, --interface ADAPTER
+                        BLE host adapter number to use (default: 0)
   -w WRITE_UUID, --write-uuid WRITE_UUID
-                        The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out
+                        The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out (default: None)
   -l FILENAME, --log FILENAME
-                        Enable optional logging of all bluetooth traffic to file
-  -p PORT, --port PORT  Symlink to virtual serial port (default = /tmp/ttyBLE)
+                        Enable optional logging of all bluetooth traffic to file (default: None)
+  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l (default: False)
+  -p PORT, --port PORT  Symlink to virtual serial port (default: /tmp/ttyBLE)
+  -r READ_UUID, --read-uuid READ_UUID
+                        The GATT characteristic to subscribe to notifications to read the serial data (default: None)
+
 ```
 Only the device address is always required:
 ```
@@ -113,6 +121,11 @@ The software acts as transparent bridge, everything that is sent to that virtual
 As mentioned before, the start might fail because the ID is not in the list, then you can manually specify the correct characteristic ID like this:
 ```
 $ ble-serial -d 20:91:48:4c:4c:54 -w 0000ffe1-0000-1000-8000-00805f9b34fb
+```
+
+Per default it does not explicitly subscribe to the read characteristic, because many modules (like HM-11) send notifications anyway. There are modules that require this though. If you don't receive any data then you have specify the uuid for reading with `-r`/`--read-uuid`, for example:
+```
+$ ble-serial -d 20:91:48:4c:4c:54 -r 0000ffe1-0000-1000-8000-00805f9b34fb
 ```
 
 Also there is an option to log all traffic on the link to a text file:
