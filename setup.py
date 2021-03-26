@@ -19,6 +19,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
+    install_requires=[
+        'bleak >= 0.11.0'
+    ],
     entry_points={
         'console_scripts': [
             'ble-scan=ble_serial.scan:main',
