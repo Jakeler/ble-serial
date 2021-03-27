@@ -45,16 +45,16 @@ async def run(args):
         bt = BLE_interface()
         if args.filename:
             log = FS_log(args.filename, args.binlog)
-            bt.set_receiver(log.middleware(Direction.BLE_IN, uart.write_sync))
+            bt.set_receiver(log.middleware(Direction.BLE_IN, uart.queue_write))
             uart.set_receiver(log.middleware(Direction.BLE_OUT, bt.queue_send))
         else:
-            bt.set_receiver(uart.write_sync)
+            bt.set_receiver(uart.queue_write)
             uart.set_receiver(bt.queue_send)
 
         uart.start()
         await bt.start(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
         logging.info('Running main loop!')
-        await bt.send_loop()
+        await asyncio.gather(bt.send_loop(), uart.write_loop())
 
     except BleakError as e:
         logging.warning(f'Bluetooth connection failed: {e}')

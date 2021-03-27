@@ -4,6 +4,7 @@ import os, pty, tty, termios
 class UART():
     def __init__(self, symlink: str, ev_loop: asyncio.AbstractEventLoop):
         self.loop = ev_loop
+        self._send_queue = asyncio.Queue()
 
         master, slave = pty.openpty()
         tty.setraw(master, termios.TCSANOW)
@@ -37,10 +38,15 @@ class UART():
         self._cb(data)
 
     def read_sync(self):
-        value = os.read(self._master, 255)
+        value = os.read(self._master, 20)
         logging.debug(f'Read: {value}')
         return value
 
-    def write_sync(self, value: bytes):
-        os.write(self._master, value)
-        logging.debug(f'Write: {value}')
+    def queue_write(self, value: bytes):
+        self._send_queue.put_nowait(value)
+
+    async def write_loop(self):
+        while True:
+            data = await self._send_queue.get()
+            logging.debug(f'Write: {data}')
+            os.write(self._master, data)
