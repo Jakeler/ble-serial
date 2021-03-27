@@ -1,5 +1,5 @@
-import logging, sys, argparse, time
-from ble_serial.virtual_serial import UART
+import logging, sys, argparse, time, asyncio
+from ble_serial.serial.linux_pty import UART
 from ble_serial.interface import BLE_interface
 from ble_serial.fs_log import FS_log, Direction
 from bluepy.btle import BTLEDisconnectError
@@ -34,8 +34,10 @@ def main():
         level=logging.DEBUG if args.verbose else logging.INFO
     )
 
+    loop = asyncio.get_event_loop()
+
     try:
-        uart = UART(args.port)
+        uart = UART(args.port, loop)
         bt = BLE_interface(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
         if args.filename:
             log = FS_log(args.filename, args.binlog)
@@ -46,6 +48,7 @@ def main():
             uart.set_receiver(bt.send)
         logging.info('Running main loop!')
         uart.start()
+        # loop.run_forever()
         while True:
             bt.receive_loop()
     except BTLEDisconnectError as e:
