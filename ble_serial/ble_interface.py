@@ -1,5 +1,6 @@
 from bleak import BleakClient
 from bleak.backends.characteristic import BleakGATTCharacteristic
+from bleak.exc import BleakError
 from ble_serial.constants import ble_chars
 import logging, asyncio
 from typing import Optional
@@ -7,6 +8,7 @@ from typing import Optional
 class BLE_interface():
     async def start(self, addr_str, addr_type, adapter, write_uuid, read_uuid,):
         self.dev = BleakClient(addr_str) # addr_type only on Windows?, adapter in kwargs
+        self.dev.set_disconnected_callback(self.handle_disconnect)
         await self.dev.connect()
         logging.info(f'Connected device {self.dev}')
 
@@ -53,8 +55,10 @@ class BLE_interface():
             await self.dev.write_gatt_char(self.write_char, data)
 
     async def shutdown(self):
-        await self.dev.stop_notify(self.read_char)
-        await self.dev.disconnect()
+        if self.dev.is_connected:
+            if hasattr(self, 'read_char'):
+                await self.dev.stop_notify(self.read_char)
+            await self.dev.disconnect()
         logging.info('BT disconnected')
 
     def queue_send(self, data: bytes):
@@ -63,3 +67,6 @@ class BLE_interface():
     def handleNotification(self, handle: int, data: bytes):
         logging.debug(f'Received notify from {handle}: {data}')
         self._cb(data)
+
+    def handle_disconnect(self, client: BleakClient):
+        raise BleakError(f'{client.address} disconnected!')
