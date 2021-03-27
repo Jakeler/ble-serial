@@ -33,6 +33,7 @@ def main():
         datefmt='%H:%M:%S',
         level=logging.DEBUG if args.verbose else logging.INFO
     )
+    logging.getLogger('bleak').level = logging.INFO
 
     asyncio.run(run(args))
 
@@ -52,8 +53,8 @@ async def run(args):
 
         uart.start()
         await bt.start(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
-        await bt.send_loop()
         logging.info('Running main loop!')
+        await bt.send_loop()
 
     except BleakError as e:
         logging.warning(f'Bluetooth connection failed: {e}')
@@ -70,7 +71,6 @@ async def run(args):
         if 'log' in locals():
             log.finish()
         logging.info('Shutdown complete.')
-
 
 if __name__ == '__main__':
     main()
