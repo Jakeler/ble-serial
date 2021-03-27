@@ -16,7 +16,7 @@ class BLE_interface():
         self.read_char = self.find_char(read_uuid, 'notify')
 
         self._send_queue = asyncio.Queue()
-        await self.dev.start_notify(self.read_char, self.handleNotification)
+        await self.dev.start_notify(self.read_char, self.handle_notify)
 
     def find_char(self, uuid: Optional[str], req_prop: str) -> BleakGATTCharacteristic:
         found_char = None
@@ -64,7 +64,7 @@ class BLE_interface():
     def queue_send(self, data: bytes):
         self._send_queue.put_nowait(data)
 
-    def handleNotification(self, handle: int, data: bytes):
+    def handle_notify(self, handle: int, data: bytes):
         logging.debug(f'Received notify from {handle}: {data}')
         self._cb(data)
 
