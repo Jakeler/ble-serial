@@ -13,6 +13,7 @@ class BLE_interface():
         self.write_char = self.find_char(write_uuid, 'write-without-response')
         self.read_char = self.find_char(read_uuid, 'notify')
 
+        self._send_queue = asyncio.Queue()
         await self.dev.start_notify(self.read_char, self.handleNotification)
 
     def find_char(self, uuid: Optional[str], req_prop: str) -> BleakGATTCharacteristic:
@@ -44,15 +45,20 @@ class BLE_interface():
         self._cb = callback
         logging.info('Receiver set up')
 
+    async def send_loop(self):
+        assert hasattr(self, '_cb'), 'Callback must be set before receive loop!'
+        while True:
+            data = await self._send_queue.get()
+            logging.debug(f'Sending {data}')
+            await self.dev.write_gatt_char(self.write_char, data)
+
     async def shutdown(self):
         await self.dev.stop_notify(self.read_char)
         await self.dev.disconnect()
         logging.info('BT disconnected')
 
-    def send(self, data: bytes):
-        logging.debug(f'Sending {data}')
-        # TODO use queue instead
-        asyncio.create_task(self.dev.write_gatt_char(self.write_char, data))
+    def queue_send(self, data: bytes):
+        self._send_queue.put_nowait(data)
 
     def handleNotification(self, handle: int, data: bytes):
         logging.debug(f'Received notify from {handle}: {data}')
