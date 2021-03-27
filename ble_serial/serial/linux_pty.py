@@ -32,7 +32,7 @@ class UART():
         os.remove(self.symlink)
 
 
-    def read_handler():
+    def read_handler(self):
         data = self.read_sync()
         self._cb(data)
 
