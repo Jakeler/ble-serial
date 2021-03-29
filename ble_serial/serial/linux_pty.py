@@ -2,8 +2,9 @@ import asyncio, logging
 import os, pty, tty, termios
 
 class UART():
-    def __init__(self, symlink: str, ev_loop: asyncio.AbstractEventLoop):
+    def __init__(self, symlink: str, ev_loop: asyncio.AbstractEventLoop, mtu: int):
         self.loop = ev_loop
+        self.mtu = mtu
         self._send_queue = asyncio.Queue()
 
         master, slave = pty.openpty()
@@ -41,7 +42,7 @@ class UART():
         self._cb(data)
 
     def read_sync(self):
-        value = os.read(self._master, 20)
+        value = os.read(self._master, self.mtu)
         logging.debug(f'Read: {value}')
         return value
 

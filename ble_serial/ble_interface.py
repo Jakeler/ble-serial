@@ -7,7 +7,7 @@ from typing import Optional
 
 class BLE_interface():
     async def start(self, addr_str, addr_type, adapter, write_uuid, read_uuid,):
-        self.dev = BleakClient(addr_str) # addr_type only on Windows?, adapter in kwargs
+        self.dev = BleakClient(addr_str, adapter=adapter, address_type=addr_type) # address_type used only in Windows .NET currently
         self._send_queue = asyncio.Queue()
         self.dev.set_disconnected_callback(self.handle_disconnect)
         logging.info(f'Trying to connect with {addr_str}')
