@@ -58,7 +58,7 @@ class BLE_interface():
             await self.dev.write_gatt_char(self.write_char, data)
 
     def stop_loop(self):
-        logging.info('Stopping BLE event loop')
+        logging.info('Stopping Bluetooth event loop')
         self._send_queue.put_nowait(None)
 
     async def disconnect(self):
@@ -66,7 +66,7 @@ class BLE_interface():
             if hasattr(self, 'read_char'):
                 await self.dev.stop_notify(self.read_char)
             await self.dev.disconnect()
-            logging.info('BT disconnected')
+            logging.info('Bluetooth disconnected')
 
     def queue_send(self, data: bytes):
         self._send_queue.put_nowait(data)

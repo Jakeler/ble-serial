@@ -22,19 +22,18 @@ class UART():
     def start(self):
         assert self._cb, 'Receiver must be set before start!'
 
-        logging.info('Starting UART event loop')
         # Register the file descriptor for read event
         self.loop.add_reader(self._master, self.read_handler)
 
     def stop_loop(self):
-        logging.info('Stopping UART event loop')
+        logging.info('Stopping serial event loop')
         self._send_queue.put_nowait(None)
 
     def remove(self):
         # Unregister the fd
         self.loop.remove_reader(self._master)
         os.remove(self.symlink)
-        logging.info(f'UART reader and symlink removed')
+        logging.info(f'Serial reader and symlink removed')
 
 
     def read_handler(self):
