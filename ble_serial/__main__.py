@@ -36,7 +36,11 @@ class Main():
         )
         logging.getLogger('bleak').level = logging.INFO
 
-        asyncio.run(self.run())
+        try:
+            asyncio.run(self.run())
+        # KeyboardInterrupt causes bluetooth to disconnect, but still a exception would be printed here
+        except KeyboardInterrupt as e:
+            logging.debug('Exit due to KeyboardInterrupt')
 
     async def run(self):
         args = self.args
@@ -61,8 +65,9 @@ class Main():
 
         except BleakError as e:
             logging.warning(f'Bluetooth connection failed: {e}')
-        except KeyboardInterrupt:
-            logging.info('Keyboard interrupt received')
+        ### KeyboardInterrupts are now received on asyncio.run()
+        # except KeyboardInterrupt:
+        #     logging.info('Keyboard interrupt received')
         except Exception as e:
             logging.error(f'Unexpected Error: {e}')
         finally:
