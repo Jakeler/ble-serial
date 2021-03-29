@@ -43,20 +43,20 @@ class Main():
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.excp_handler)
         try:
-            uart = UART(args.port, loop)
-            bt = BLE_interface()
+            self.uart = UART(args.port, loop)
+            self.bt = BLE_interface()
             if args.filename:
-                log = FS_log(args.filename, args.binlog)
-                bt.set_receiver(log.middleware(Direction.BLE_IN, uart.queue_write))
-                uart.set_receiver(log.middleware(Direction.BLE_OUT, bt.queue_send))
+                self.log = FS_log(args.filename, args.binlog)
+                self.bt.set_receiver(self.log.middleware(Direction.BLE_IN, self.uart.queue_write))
+                self.uart.set_receiver(self.log.middleware(Direction.BLE_OUT, self.bt.queue_send))
             else:
-                bt.set_receiver(uart.queue_write)
-                uart.set_receiver(bt.queue_send)
+                self.bt.set_receiver(self.uart.queue_write)
+                self.uart.set_receiver(self.bt.queue_send)
 
-            uart.start()
-            await bt.start(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
+            self.uart.start()
+            await self.bt.start(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
             logging.info('Running main loop!')
-            self.main_loop = asyncio.gather(bt.send_loop(), uart.write_loop())
+            self.main_loop = asyncio.gather(self.bt.send_loop(), self.uart.write_loop())
             await self.main_loop
 
         except BleakError as e:
@@ -67,19 +67,21 @@ class Main():
             logging.error(f'Unexpected Error: {e}')
         finally:
             logging.warning('Shutdown initiated')
-            if 'uart' in locals():
-                uart.stop()
-            if 'bt' in locals():
-                await bt.shutdown()
-            if 'log' in locals():
-                log.finish()
+            if hasattr(self, 'uart'):
+                self.uart.remove()
+            if hasattr(self, 'bt'):
+                await self.bt.disconnect()
+            if hasattr(self, 'log'):
+                self.log.finish()
             logging.info('Shutdown complete.')
 
-    def excp_handler(self, loop: asyncio.AbstractEventLoop, context):
-        # Handles exception from inside bleak disconnect
-        # loop.default_exception_handler(context)
 
-        print('custom handler', context['exception'])
+    def excp_handler(self, loop: asyncio.AbstractEventLoop, context):
+        # Handles exception from other tasks (inside bleak disconnect, etc)
+        # loop.default_exception_handler(context)
+        logging.debug(f'Asyncio execption handler called {context["exception"]}')
+        self.uart.stop_loop()
+        self.bt.stop_loop()
 
 if __name__ == '__main__':
     Main()

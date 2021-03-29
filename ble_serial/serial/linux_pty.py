@@ -26,11 +26,15 @@ class UART():
         # Register the file descriptor for read event
         self.loop.add_reader(self._master, self.read_handler)
 
-    def stop(self):
+    def stop_loop(self):
         logging.info('Stopping UART event loop')
+        self._send_queue.put_nowait(None)
+
+    def remove(self):
         # Unregister the fd
         self.loop.remove_reader(self._master)
         os.remove(self.symlink)
+        logging.info(f'UART reader and symlink removed')
 
 
     def read_handler(self):
@@ -48,5 +52,7 @@ class UART():
     async def write_loop(self):
         while True:
             data = await self._send_queue.get()
+            if data == None:
+                break # Let future end on shutdown
             logging.debug(f'Write: {data}')
             os.write(self._master, data)
