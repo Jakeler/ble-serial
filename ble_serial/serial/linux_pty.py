@@ -1,3 +1,4 @@
+from ble_serial.serial.interface import ISerial
 import asyncio, logging
 import os, pty, tty, termios
 
