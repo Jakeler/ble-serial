@@ -1,6 +1,6 @@
 import logging, sys, argparse, time, asyncio
-# from ble_serial.serial.linux_pty import UART
-from ble_serial.serial.print_dummy import Dummy as UART
+# from ble_serial.ports.linux_pty import UART
+from ble_serial.ports.print_dummy import Dummy as UART
 from ble_serial.ble_interface import BLE_interface
 from ble_serial.fs_log import FS_log, Direction
 from bleak.exc import BleakError

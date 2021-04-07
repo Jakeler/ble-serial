@@ -1,5 +1,5 @@
-from ble_serial.serial.interface import ISerial
-from ble_serial.serial.windows_priv_setupc import PORT_INTERNAL
+from ble_serial.ports.interface import ISerial
+from ble_serial.ports.windows_priv_setupc import PORT_INTERNAL
 import serial
 
 class COM(ISerial):

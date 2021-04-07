@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/Jakeler/ble-serial",
     packages=[
         "ble_serial",
-        "ble_serial.serial",
+        "ble_serial.ports",
         "ble_serial.setup_com0com"
     ],
     classifiers=[
