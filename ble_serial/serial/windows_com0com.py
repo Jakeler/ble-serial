@@ -24,13 +24,3 @@ class COM(ISerial):
     def remove(self):
         pass
 
-def run_setup():
-    import ctypes, sys, os
-
-    script_path = os.path.dirname(__file__)
-    res = ctypes.windll.shell32.ShellExecuteW(None, "runas", 
-        sys.executable, f'{script_path}\\windows_priv_setupc.py', None, 1)
-    print('OK' if res == 42 else 'Error: higher privileges required')
-
-if __name__ == "__main__":
-    run_setup()

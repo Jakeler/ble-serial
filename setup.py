@@ -1,4 +1,4 @@
-import setuptools
+import setuptools, platform
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -12,7 +12,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Jakeler/ble-serial",
-    packages=["ble_serial"],
+    packages=[
+        "ble_serial",
+        "ble_serial.serial",
+        "ble_serial.setup_com0com"
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -25,7 +29,9 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'ble-scan=ble_serial.scan:main',
-            'ble-serial=ble_serial.__main__:main',
+            'ble-serial=ble_serial.__main__:Main',
         ]
+        + ['ble-setup=ble_serial.setup_com0com:main']
+        if platform.system() == "Windows" else []
     },
 )

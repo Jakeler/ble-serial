@@ -1,15 +1,17 @@
-import os
+import os, sys
 import subprocess, re
 
 # For compatibility:
 # https://support.microsoft.com/en-us/topic/howto-specify-serial-ports-larger-than-com9-db9078a5-b7b6-bf00-240f-f749ebfd913e
-PORT_USER = 'COM56'
-PORT_INTERNAL = 'BLE3'
+PORT_USER = 'COM9'
+PORT_INTERNAL = 'BLE'
 
-SETUP_PATH = 'C:/Program Files (x86)/com0com/'
 BIN = 'setupc.exe'
 
-def cd(path: str):
+def cd_to_install():
+    # com0com needs to read inf from install path
+    path = sys.argv[1]
+    print(f'Changing into {path}')
     os.chdir(path)
 
 def check_list(port: str):
@@ -28,8 +30,7 @@ def install():
 
 if __name__ == "__main__":
     try:
-        # com0com needs to read inf from install path
-        cd(SETUP_PATH)
+        cd_to_install()
         done = check_list(PORT_INTERNAL)
         if done:
             print(f'Found: {done.group(0)}')
