@@ -15,7 +15,7 @@ class ISerial(ABC):
         pass
 
     @abstractmethod
-    async def write_loop(self):
+    async def run_loop(self):
         pass
 
     @abstractmethod

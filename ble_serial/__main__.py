@@ -62,7 +62,7 @@ class Main():
             self.uart.start()
             await self.bt.start(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
             logging.info('Running main loop!')
-            self.main_loop = asyncio.gather(self.bt.send_loop(), self.uart.write_loop())
+            self.main_loop = asyncio.gather(self.bt.send_loop(), self.uart.run_loop())
             await self.main_loop
 
         except BleakError as e:
