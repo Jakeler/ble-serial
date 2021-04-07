@@ -24,7 +24,9 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'bleak >= 0.11.0'
+        'bleak >= 0.11.0',
+        'pyserial >= 3.4.0 ;platform_system == "Windows"',
+        'aioserial >= 1.3.0 ;platform_system == "Windows"',
     ],
     entry_points={
         'console_scripts': [
