@@ -1,10 +1,10 @@
 from ble_serial.ports.interface import ISerial
-from ble_serial.ports.windows_priv_setupc import PORT_INTERNAL
-import serial
+from ble_serial.setup_com0com.windows_priv_setupc import PORT_INTERNAL
+import serial # pyserial
 
 class COM(ISerial):
     def __init__(self):
-        self.serial = serial.Serial("\\\\.\\BLE")
+        self.serial = serial.Serial(f"\\\\.\\{PORT_INTERNAL}")
 
     def start(self):
         pass
