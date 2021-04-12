@@ -19,7 +19,7 @@ def check_list(port: str):
     p = subprocess.run([BIN, 'list'], check=True, capture_output=True)
     stdout = p.stdout.decode()
     print(stdout)
-    return re.compile(rf'\w* PortName={port}').search(stdout)
+    return re.compile(rf'\w* PortName={port}$', flags=re.MULTILINE).search(stdout)
 
 def install():
     print('> Trying to create port pair')
