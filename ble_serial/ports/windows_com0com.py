@@ -42,8 +42,9 @@ class COM(ISerial):
         # based on ReaderThread(threading.Thread) from:
         # https://github.com/pyserial/pyserial/blob/master/serial/threaded/__init__.py
         while self.alive and self.serial.is_open:
-            n = min(self.mtu, self.serial.in_waiting) or 1 # request at least 1 to block
-            data = self.serial.read(n)
+            data = self.serial.read(1) # request 1 to block
+            n = min(self.mtu - 1, self.serial.in_waiting) # read the remaning, can be 0
+            data += self.serial.read(n)
             logging.debug(f'Read: {data}')
             self.loop.call_soon_threadsafe(self._cb, data) # needed as asyncio.Queue is not thread safe
 
