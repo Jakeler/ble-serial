@@ -1,17 +1,13 @@
 import logging, sys, argparse, time, asyncio
-from ble_serial.ports.linux_pty import UART
-# from ble_serial.ports.windows_com0com import COM as UART
+from bleak.exc import BleakError
+from ble_serial import platform_uart as UART
 from ble_serial.ble_interface import BLE_interface
 from ble_serial.fs_log import FS_log, Direction
-from bleak.exc import BleakError
 
 class Main():
-    def __init__(self):
-        self.parse_args()
-        self.setup_logger()
-
+    def start(self):
         try:
-            asyncio.run(self.run())
+            asyncio.run(self._run())
         # KeyboardInterrupt causes bluetooth to disconnect, but still a exception would be printed here
         except KeyboardInterrupt as e:
             logging.debug('Exit due to KeyboardInterrupt')
@@ -50,7 +46,7 @@ class Main():
             help='The GATT characteristic to subscribe to notifications to read the serial data')
         self.args = parser.parse_args()
 
-    async def run(self):
+    async def _run(self):
         args = self.args
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.excp_handler)
@@ -95,3 +91,9 @@ class Main():
         logging.debug(f'Asyncio execption handler called {context["exception"]}')
         self.uart.stop_loop()
         self.bt.stop_loop()
+
+def launch():
+    m = Main()
+    m.parse_args()
+    m.setup_logger()
+    m.start()

@@ -1,4 +1,4 @@
-from ble_serial import Main
+from ble_serial.main import launch
 
 if __name__ == '__main__':
-    Main()
+    launch()
