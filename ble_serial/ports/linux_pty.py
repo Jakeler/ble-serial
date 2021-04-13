@@ -1,7 +1,8 @@
+from ble_serial.ports.interface import ISerial
 import asyncio, logging
 import os, pty, tty, termios
 
-class UART():
+class UART(ISerial):
     def __init__(self, symlink: str, ev_loop: asyncio.AbstractEventLoop, mtu: int):
         self.loop = ev_loop
         self.mtu = mtu
@@ -49,7 +50,7 @@ class UART():
     def queue_write(self, value: bytes):
         self._send_queue.put_nowait(value)
 
-    async def write_loop(self):
+    async def run_loop(self):
         while True:
             data = await self._send_queue.get()
             if data == None:
