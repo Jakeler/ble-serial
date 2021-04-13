@@ -31,9 +31,9 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'ble-scan=ble_serial.scan:main',
-            'ble-serial=ble_serial.__main__:Main',
-        ]
-        + ['ble-setup=ble_serial.setup_com0com:main']
-        if platform.system() == "Windows" else []
+            'ble-serial=ble_serial:Main',
+        ] + (
+            ['ble-setup=ble_serial.setup_com0com:main'] if platform.system() == "Windows" else []
+        )
     },
 )
