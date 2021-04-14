@@ -3,6 +3,9 @@ import setuptools, platform
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open("requirements.txt", "r") as fr:
+    REQUIRES = fr.read()
+
 setuptools.setup(
     name="ble-serial",
     version="1.3.0",
@@ -23,11 +26,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.7',
-    install_requires=[
-        'bleak >= 0.11.0',
-        'pyserial >= 3.4.0 ;platform_system == "Windows"',
-        'aioserial >= 1.3.0 ;platform_system == "Windows"',
-    ],
+    install_requires=REQUIRES,
     entry_points={
         'console_scripts': [
             'ble-scan=ble_serial.scan:main',

@@ -1,5 +1,6 @@
 import logging, sys, argparse, time, asyncio
 from bleak.exc import BleakError
+import coloredlogs
 from ble_serial import platform_uart as UART
 from ble_serial import DEFAULT_PORT, DEFAULT_PORT_MSG
 from ble_serial.ble_interface import BLE_interface
@@ -14,12 +15,29 @@ class Main():
             logging.debug('Exit due to KeyboardInterrupt')
 
     def setup_logger(self):
-        logging.basicConfig(
-            format='%(asctime)s.%(msecs)03d | %(levelname)s | %(filename)s: %(message)s', 
-            datefmt='%H:%M:%S',
-            level=logging.DEBUG if self.args.verbose else logging.INFO
-        )
         logging.getLogger('bleak').level = logging.INFO
+
+        level_colors = {
+            'critical': {'bold': True, 'color': 'red'},
+            'error': {'color': 'red'},
+            'warning': {'color': 'yellow'},
+            'info': {'color': 'green'},
+            'debug': {'color': 'cyan'},
+            'success': {'bold': True, 'color': 'green'},
+        }
+        field_colors = {
+            'asctime': {},
+            'levelname': {'color': 'magenta'},
+            'filename': {'color': 'white', 'faint': True},
+        }
+        coloredlogs.install(
+            level=logging.DEBUG if self.args.verbose else logging.INFO,
+            fmt='%(asctime)s.%(msecs)03d | %(levelname)s | %(filename)s: %(message)s',
+            datefmt='%H:%M:%S',
+            level_styles=level_colors,
+            field_styles=field_colors,
+        )
+
 
     def parse_args(self):
         parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
@@ -69,7 +87,7 @@ class Main():
             await self.main_loop
 
         except BleakError as e:
-            logging.warning(f'Bluetooth connection failed: {e}')
+            logging.error(f'Bluetooth connection failed: {e}')
         ### KeyboardInterrupts are now received on asyncio.run()
         # except KeyboardInterrupt:
         #     logging.info('Keyboard interrupt received')

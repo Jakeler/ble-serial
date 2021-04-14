@@ -76,5 +76,5 @@ class BLE_interface():
         self._cb(data)
 
     def handle_disconnect(self, client: BleakClient):
-        logging.info(f'Device {client.address} disconnected')
+        logging.warning(f'Device {client.address} disconnected')
         raise BleakError(f'{client.address} disconnected!')
