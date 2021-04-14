@@ -1,19 +1,19 @@
 from ble_serial.ports.interface import ISerial
-from ble_serial.setup_com0com.windows_priv_setupc import PORT_INTERNAL
 import asyncio, logging
 from serial import Serial # pyserial
 from queue import Queue, Empty
 from concurrent.futures import ThreadPoolExecutor
 
 class COM(ISerial):
-    def __init__(self, _, ev_loop: asyncio.AbstractEventLoop, mtu: int):
+    def __init__(self, port: str, ev_loop: asyncio.AbstractEventLoop, mtu: int):
         self.alive = True # to stop executor threads
         self.loop = ev_loop
         self.mtu = mtu
+        self.port = port
         self.tx_queue = Queue()
 
     def start(self):
-        self.serial = Serial(f"\\\\.\\{PORT_INTERNAL}")
+        self.serial = Serial(f"\\\\.\\{self.port}")
 
     def set_receiver(self, callback):
         self._cb = callback

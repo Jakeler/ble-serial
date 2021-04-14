@@ -1,6 +1,7 @@
 import logging, sys, argparse, time, asyncio
 from bleak.exc import BleakError
 from ble_serial import platform_uart as UART
+from ble_serial import DEFAULT_PORT, DEFAULT_PORT_MSG
 from ble_serial.ble_interface import BLE_interface
 from ble_serial.fs_log import FS_log, Direction
 
@@ -40,8 +41,8 @@ class Main():
             help='Enable optional logging of all bluetooth traffic to file')
         parser.add_argument('-b', '--binary', dest='binlog', required=False, action='store_true',
             help='Log data as raw binary, disable transformation to hex. Works only in combination with -l')
-        parser.add_argument('-p', '--port', dest='port', required=False, default='/tmp/ttyBLE',
-            help='Symlink to virtual serial port')
+        parser.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
+            help=DEFAULT_PORT_MSG)
         parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
             help='The GATT characteristic to subscribe to notifications to read the serial data')
         self.args = parser.parse_args()
