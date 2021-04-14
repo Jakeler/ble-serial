@@ -6,7 +6,7 @@ It fulfills the same purpose as `rfcomm bind` for the old Bluetooth 2.0, creatin
 ### Standard (via Python Package Index)
 The software is written completely in Python and packaged as module, so it can be easily installed with pip:
 ```console
-pip install ble-serial
+$ pip install ble-serial
 ```
 
 Now you should have 2 new scripts: `ble-scan` and the main `ble-serial`.
@@ -16,7 +16,7 @@ On Linux you ready now and can directly jump to the usage section!
 ### From source (for developers)
 You can clone the repository with:
 ```console
-git clone https://github.com/Jakeler/ble-serial.git
+$ git clone https://github.com/Jakeler/ble-serial.git
 ```
 
 Then switch branches, make changes etc... 
@@ -44,8 +44,8 @@ and started as usual.
 Windows does not have a builtin feature to create virtual serial ports (like Linux does), so it is required to install a additional driver. I decided to use the open source `com0com` Null-modem emulator, downloaded from [here](https://sourceforge.net/projects/signed-drivers/files/com0com/v3.0/) as signed version. This is required because unsigned drivers can not be installed anymore. Note that on latest Windows 10 you likely still have to disable secure boot for it to work.
 
 ble-serial includes the `ble-setup` script to make the `com0com` configuration easier:
-```
-ble-setup.exe -h
+```console
+> ble-setup.exe -h
 usage: ble-setup [-h] [--install-path INSTALL_PATH]
 
 Setup required COM port pair
@@ -57,7 +57,7 @@ optional arguments:
 ```
 
 It will request administrator privileges (if it does not already have it) and setup the port in another CMD window:
-```console
+```
 Changing into C:/Program Files (x86)/com0com/
 
 > Checking port list for BLE
@@ -210,7 +210,7 @@ $ cat demo.txt
 Per default it is transformed to hex bytes, use `-b`/`--binary` to log raw data.
 
 You can use `-v` to increase the log verbosity to DEBUG:
-```
+```console
 18:31:25.136 | DEBUG | ble_interface.py: Received notify from 17: bytearray(b'\xb0\xb0\xb0\xb0\xb0\xb0;\xb0\xb0\xb0\xba\xb0\r\x8a')
 18:31:25.136 | DEBUG | linux_pty.py: Write: bytearray(b'\xb0\xb0\xb0\xb0\xb0\xb0;\xb0\xb0\xb0\xba\xb0\r\x8a')
 
