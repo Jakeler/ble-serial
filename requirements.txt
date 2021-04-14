@@ -1,1 +1,3 @@
-git+https://github.com/edwios/bluepy.git
+bleak >= 0.11.0
+pyserial >= 3.4.0 ;platform_system == "Windows"
+aioserial >= 1.3.0 ;platform_system == "Windows"

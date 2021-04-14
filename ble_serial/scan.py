@@ -1,55 +1,57 @@
-from bluepy.btle import Scanner, DefaultDelegate, ScanEntry, Peripheral, BTLEException
-import argparse
+from bleak import BleakScanner, BleakClient
+from bleak.backends.service import BleakGATTServiceCollection
+import argparse, asyncio
 
-class ScanDelegate(DefaultDelegate):
-    def __init__(self):
-        DefaultDelegate.__init__(self)
 
-    def handleDiscovery(self, dev, isNewDev, isNewData):
-        if isNewDev:
-            print(f"Discovered device: {dev.addr} -> {dev.getValueText(0x9)}")
-        elif isNewData:
-            print("Received new data from", dev.addr)
+async def scan(args):
+    if args.addr:
+        await deep_scan(args.addr)
+    else:
+        await general_scan(args.sec)
 
-def scan(time: float, deep: bool):
-    scanner = Scanner().withDelegate(ScanDelegate())
-    devices = scanner.scan(time)
-    print(f'Found {len(devices)} devices!\n')
+async def general_scan(time: float):
+    print("Started BLE scan\n")
 
-    for dev in devices:
-        print(f"Device {dev.addr} ({dev.addrType}), RSSI={dev.rssi} dB")
-        for (adtype, desc, value) in dev.getScanData():
-            print(f"    {adtype:02x}: {desc} = {value}")
-        if deep:
-            specific_scan(dev)
-        print()
+    devices = await BleakScanner.discover(timeout=time)
 
-def specific_scan(addr: str):
-    try:
-        dev = Peripheral(deviceAddr=addr)
-        print_dev(dev)
-        dev.disconnect()
-    except BTLEException as e:
-        print(f'Could not read device: {e}')
+    sorted_devices = sorted(devices, key=lambda dev: dev.rssi, reverse=True)
+    for d in sorted_devices:
+        print(f'{d.address} (RSSI={d.rssi}): {d.name}')
 
-def print_dev(dev):
-    serv = dev.getServices()
-    for service in serv:
-        print('  Service:', service.uuid)
-        for char in service.getCharacteristics():
-            print('    Characteristic:', char.uuid, char.propertiesToString())
+    print("\nFinished BLE scan")
+
+
+async def deep_scan(dev: str):
+    print(f"Started deep scan of {dev}\n")
+
+    async with BleakClient(dev) as client:
+        print_details(await client.get_services())
+
+    print(f"\nCompleted deep scan of {dev}")
+
+def print_details(serv: BleakGATTServiceCollection):
+    INDENT = '    '
+    for s in serv:
+        print('SERVICE', s)
+        for char in s.characteristics:
+            print(INDENT, 'CHARACTERISTIC', char, char.properties)
+            for desc in char.descriptors:
+                print(INDENT*2, 'DESCRIPTOR', desc)
+
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Scanner for BLE devices and service/characteristcs. ROOT required.',
+        description='Scanner for BLE devices and service/characteristics.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-t', '--scan-time', dest='sec', default=5.0, type=float, 
         help='Duration of the scan in seconds')
-    parser.add_argument('-d', '--deep-scan', dest='deep', action='store_true',
-        help='Try to connect to the devices and read out the service/characteristic UUIDs')
+    parser.add_argument('-d', '--deep-scan', dest='addr', type=str,
+        help='Try to connect to device and read out service/characteristic UUIDs')
     args = parser.parse_args()
 
-    scan(args.sec, args.deep)
+    asyncio.run(scan(args))
+
 
 if __name__ == '__main__':
+    # Extra function for console scripts
     main()
