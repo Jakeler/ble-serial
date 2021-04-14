@@ -35,7 +35,7 @@ class Main():
         parser.add_argument('-m', '--mtu', dest='mtu', required=False, default=20, type=int,
             help='Max. bluetooth packet data size in bytes used for sending')
         parser.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
-            help='The GATT chracteristic to write the serial data, you might use "scan.py -d" to find it out')
+            help='The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out')
         parser.add_argument('-l', '--log', dest='filename', required=False,
             help='Enable optional logging of all bluetooth traffic to file')
         parser.add_argument('-b', '--binary', dest='binlog', required=False, action='store_true',
