@@ -21,6 +21,7 @@ setuptools.setup(
         "ble_serial.ports",
         "ble_serial.scan",
         "ble_serial.setup_com0com",
+        "ble_serial.log",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
