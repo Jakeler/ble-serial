@@ -1,7 +1,7 @@
 from bleak import BleakClient
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.exc import BleakError
-from ble_serial.constants import ble_chars
+from ble_serial.bluetooth.constants import ble_chars
 import logging, asyncio
 from typing import Optional
 

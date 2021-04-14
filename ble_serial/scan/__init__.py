@@ -39,6 +39,7 @@ def print_details(serv: BleakGATTServiceCollection):
                 print(INDENT*2, 'DESCRIPTOR', desc)
 
 
+# Extra function for console scripts
 def main():
     parser = argparse.ArgumentParser(
         description='Scanner for BLE devices and service/characteristics.',
@@ -51,7 +52,3 @@ def main():
 
     asyncio.run(scan(args))
 
-
-if __name__ == '__main__':
-    # Extra function for console scripts
-    main()

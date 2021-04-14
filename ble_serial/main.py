@@ -3,7 +3,7 @@ from bleak.exc import BleakError
 import coloredlogs
 from ble_serial import platform_uart as UART
 from ble_serial import DEFAULT_PORT, DEFAULT_PORT_MSG
-from ble_serial.ble_interface import BLE_interface
+from ble_serial.bluetooth.ble_interface import BLE_interface
 from ble_serial.fs_log import FS_log, Direction
 
 class Main():

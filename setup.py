@@ -17,8 +17,10 @@ setuptools.setup(
     url="https://github.com/Jakeler/ble-serial",
     packages=[
         "ble_serial",
+        "ble_serial.bluetooth",
         "ble_serial.ports",
-        "ble_serial.setup_com0com"
+        "ble_serial.scan",
+        "ble_serial.setup_com0com",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
