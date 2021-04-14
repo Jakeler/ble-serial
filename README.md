@@ -2,55 +2,68 @@
 A tool to connect Bluetooth 4.0+ Low Energy to UART modules and normal PCs/laptops/RaspberryPi. 
 It fulfills the same purpose as `rfcomm bind` for the old Bluetooth 2.0, creating a virtual serial port in `/dev/pts/x`, which makes it usable with any terminal or application.
 
-### Installation
+## Installation
+### Standard (via Python Package Index)
 The software is written completely in Python and packaged as module, so it can be easily installed with pip:
-```
+```console
 pip install ble-serial
-pip install git+https://github.com/edwios/bluepy.git@10f1cee90afb416f139949b86b491e4cfa98c886
 ```
-If you are wondering why the second command is required: It depends on the bluepy library, but unfortunately there are [bugs](https://github.com/IanHarvey/bluepy/issues/253) in the original version and there was no development since a year, so it is important to specifically install this fork with a few fixes.
 
 Now you should have 2 new scripts: `ble-scan` and the main `ble-serial`.
 
-Note: To be able to do device scans without using `sudo` or root, you must grant the `bluepy-helper` binary additional [capabilities/permissions](https://github.com/IanHarvey/bluepy/issues/313#issuecomment-428324639). Follow the steps outlined below:
+On Linux you ready now and can directly jump to the usage section!
 
-Find bluepy-helper (typically ~/.local/lib/python3.6/site-packages/bluepy/bluepy-helper).
-Give it permissions so you don't have to run scripts with sudo:
-```sh
-sudo setcap 'cap_net_raw,cap_net_admin+eip' bluepy-helper`
+### From source/local (for developers)
+You can clone the repository with:
+```console
+git clone https://github.com/Jakeler/ble-serial.git
 ```
 
+Then switch branches, make changes etc... 
+The package can be started directly with `-m`:
+```console
+python -m ble_serial ARGUMENTS # Main tool = ble-serial
+python -m ble_serial.scan # BLE scan = ble-scan
+python -m ble_serial.setup_com0com # Windows only setup = ble-setup
+```
+
+Or install it with `pip` from the current directory:
+```console
+pip install .
+```
+
+## Usage
 ### Finding devices
-First make sure the bluetooth adapter is enabled, for example with `bluetoothctl power on`, then the scan function can be used (note: root is required for this step, if you have not added the capabilities above):
+First make sure the bluetooth adapter is enabled, for example with `bluetoothctl power on`, then the scan function can be used:
 ```
-# ble-scan
-```
-```
-Discovered device: 20:91:48:4c:4c:54 -> UT61E - JK
+$ ble-scan
+
+Started BLE scan
+
+20:91:48:4C:4C:54 (RSSI=-56): UT61E -  JK
 ...
-Found 2 devices!
 
-Device 20:91:48:4c:4c:54 (public), RSSI=-58 dB
-    01: Flags = 06
-    ff: Manufacturer = 484d2091484c4c54
-    16: 16b Service Data = 00b000000000
-    02: Incomplete 16b Services = 0000ffe0-0000-1000-8000-00805f9b34fb
-    09: Complete Local Name = UT61E -  JK
-    0a: Tx Power = 00
-
-Device ...
+Finished BLE scan
 ```
-The output is a list of the recognized nearby devices. After the MAC address it prints out the device name, if it can be resolved.
+The output is a list of the recognized nearby devices. After the MAC address and signal strength it prints out the device name, if it can be resolved.
 
-If there are no devices found it might help to increase the scan time. All discoverable devices must actively send advertisements, to save power the interval of this can be quite long, so then try for example 30 seconds.
-```
+If there are no devices found it might help to increase the scan time. All discoverable devices must actively send advertisements, the interval of this can be quite long  to save power, so try for example 30 seconds in this case.
+```console
+$ ble-scan -h
+usage: ble-scan [-h] [-t SEC] [-d ADDR]
+
+Scanner for BLE devices and service/characteristics.
+
 optional arguments:
   -h, --help            show this help message and exit
   -t SEC, --scan-time SEC
                         Duration of the scan in seconds (default: 5.0)
-  -d, --deep-scan       Try to connect to the devices and read out the service/characteristic UUIDs (default: False)
+  -d ADDR, --deep-scan ADDR
+                        Try to connect to device and read out service/characteristic UUIDs 
+                        (default: None)
 ```
-On Bluetooth 2.0 there was a "serial port profile", with 4.0 BLE there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own ID to implement the features. 
+
+On Bluetooth 2.0 there was a "serial port profile", with 4.0 - 5.2 (BLE) there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own ID to implement the features. 
 ```py
 '0000ff02-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter
 '0000ffe1-0000-1000-8000-00805f9b34fb', # TI CC245x (HM-10, HM-11)
@@ -58,28 +71,24 @@ On Bluetooth 2.0 there was a "serial port profile", with 4.0 BLE there is unfort
 Some usual IDs are included in ble-serial, these will be tried automatically if nothing is specified.
 You might skip this part and start directly with the connection.
 
-Otherwise to find the correct ID, use the deep scan option, it will go through the devices and shows all provided interfaces. This scan can take long, especially if there are many devices in the area, so only use it if you want to find the right write characteristic ID.
-```
-# ble-scan -d
-```
-```
-  Device ...
-  ...
-  Service: 00001800-0000-1000-8000-00805f9b34fb
-    Characteristic: 00002a00-0000-1000-8000-00805f9b34fb READ 
-    Characteristic: 00002a01-0000-1000-8000-00805f9b34fb READ 
-    Characteristic: 00002a02-0000-1000-8000-00805f9b34fb READ WRITE 
-    Characteristic: 00002a03-0000-1000-8000-00805f9b34fb READ WRITE 
-    Characteristic: 00002a04-0000-1000-8000-00805f9b34fb READ 
-  Service: 00001801-0000-1000-8000-00805f9b34fb
-    Characteristic: 00002a05-0000-1000-8000-00805f9b34fb INDICATE 
-  Service: 0000ffe0-0000-1000-8000-00805f9b34fb
-    Characteristic: 0000ffe1-0000-1000-8000-00805f9b34fb READ WRITE NO RESPONSE NOTIFY 
-```
-Now in addition to the previous output there are all characteristics listed, grouped into services. The characteristics in the first service starting with `00002a` are not interesting in this case, because they are standard values (for example the device name), if you want to know more look at [this list](https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026#file-allgattcharacteristics-java-L57).
+Otherwise to find the correct ID, use the deep scan option. It expects a device MAC address, connects to it and reads out all services/characteristic/descriptors:
+```console
+$ ble-scan -d 20:91:48:4C:4C:54
+Started deep scan of 20:91:48:4C:4C:54
 
-After the (U)ID the permissions are listed. We are searching for a characteristic that allows writing = sending to the device, the only candidate in here is `0000ffe1-0000-1000-8000-00805f9b34fb` (spoiler: a HM-11 module again).
+SERVICE 00001801-0000-1000-8000-00805f9b34fb (Handle: 12): Generic Attribute Profile
+     CHARACTERISTIC 00002a05-0000-1000-8000-00805f9b34fb (Handle: 13): Service Changed ['indicate']
+         DESCRIPTOR 00002902-0000-1000-8000-00805f9b34fb (Handle: 15): Client Characteristic Configuration
+SERVICE 0000ffe0-0000-1000-8000-00805f9b34fb (Handle: 16): Vendor specific
+     CHARACTERISTIC 0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific ['read', 'write-without-response', 'notify']
+         DESCRIPTOR 00002902-0000-1000-8000-00805f9b34fb (Handle: 19): Client Characteristic Configuration
+         DESCRIPTOR 00002901-0000-1000-8000-00805f9b34fb (Handle: 20): Characteristic User Description
 
+Completed deep scan of 20:91:48:4C:4C:54
+```
+Now the interesting parts are the characteristics, grouped into services. The ones belows the first service starting with `00002a` are not interesting in this case, because they are standard values (for example the device name), if you want to know more look at [this list](https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026#file-allgattcharacteristics-java-L57).
+
+After the ID, handle and type the permissions are listed in []. We are searching for a characteristic that allows writing = sending to the device, the only candidate in here is `0000ffe1-0000-1000-8000-00805f9b34fb` (spoiler: a HM-11 module again). Same procedure with the read characteristic.
 
 
 ### Connecting a device
