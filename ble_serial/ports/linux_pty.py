@@ -1,12 +1,15 @@
 from ble_serial.ports.interface import ISerial
 import asyncio, logging
 import os, pty, tty, termios
+from concurrent.futures import ThreadPoolExecutor
+from queue import Queue
 
 class UART(ISerial):
     def __init__(self, symlink: str, ev_loop: asyncio.AbstractEventLoop, mtu: int):
         self.loop = ev_loop
+        self.pool = ThreadPoolExecutor(max_workers=2)
         self.mtu = mtu
-        self._send_queue = asyncio.Queue()
+        self._send_queue = Queue()
 
         master, slave = pty.openpty()
         tty.setraw(master, termios.TCSANOW)
@@ -39,21 +42,24 @@ class UART(ISerial):
 
 
     def read_handler(self):
-        data = self.read_sync()
-        self._cb(data)
+        self.loop.run_in_executor(self.pool, self._read)
 
-    def read_sync(self):
+    def _read(self):
         value = os.read(self._master, self.mtu)
         logging.debug(f'Read: {value}')
-        return value
+
+        self.loop.call_soon_threadsafe(self._cb, value) # put into asyncio.Queue
 
     def queue_write(self, value: bytes):
         self._send_queue.put_nowait(value)
-
-    async def run_loop(self):
+    
+    def _write_loop(self):
         while True:
-            data = await self._send_queue.get()
+            data = self._send_queue.get()
             if data == None:
                 break # Let future end on shutdown
             logging.debug(f'Write: {data}')
             os.write(self._master, data)
+
+    async def run_loop(self):
+        self.loop.run_in_executor(self.pool, self._write_loop)
