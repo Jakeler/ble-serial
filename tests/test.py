@@ -9,14 +9,11 @@ from serial_handler import read_serial, write_serial, run_ble_serial, signal_ser
 PORT_UART = '/dev/ttyUSB0'
 PORT_BLE = '/tmp/ttyBLE'
 
-PACKET_SIZE = 16
-DELAY = 0.005
-
 with open('../README.md', 'rb') as f:
     CONTENT = f.read()
     # print(CONTENT)
 
-CONTENT = CONTENT[:5000]
+# CONTENT = CONTENT[:500]
 
 class Dir:
     _ports = [
@@ -55,7 +52,7 @@ class Log:
         self.csvfile.close()
 
 def run_test(exc: TPE, log: Log, dir: Dir, baud: int, packet_size: int, delay: float):
-    futw = executor.submit(write_serial, dir.write, baud, CONTENT, PACKET_SIZE, DELAY)
+    futw = executor.submit(write_serial, dir.write, baud, CONTENT, packet_size, delay)
     futr = executor.submit(read_serial, dir.read, baud, CONTENT)
     
     result = futr.result()
@@ -71,6 +68,9 @@ def run_test(exc: TPE, log: Log, dir: Dir, baud: int, packet_size: int, delay: f
 
 baud_to_test = [9600, 19200, 115200]
 prev = baud_to_test[0]
+
+PACKET_SIZE = [4, 16, 64]
+BYTE_DELAY = [0.000, 1/1000, 1/200] # bytes/sec
 
 if __name__ == "__main__":
     # Reset to start baud after fail
@@ -88,8 +88,10 @@ if __name__ == "__main__":
             futb = executor.submit(run_ble_serial)
             sleep(3)
 
-            run_test(executor, log, Dir.BLE_UART(), baud, PACKET_SIZE, DELAY)
-            run_test(executor, log, Dir.UART_BLE(), baud, PACKET_SIZE, DELAY)
+            for size in PACKET_SIZE:
+                for delay in BYTE_DELAY:
+                    run_test(executor, log, Dir.BLE_UART(), baud, size, size*delay)
+                    run_test(executor, log, Dir.UART_BLE(), baud, size, size*delay)
 
             signal_serial_end()
 
