@@ -1,4 +1,5 @@
 from serial import Serial
+from time import sleep
 
 # AT command and responses
 CMD = ('AT', 'OK')
@@ -18,9 +19,12 @@ BAUDS = [
 ]
 
 def set_module_baud(port: str, conn_baud: int, target_baud: int):
+    print(f'Changing baud {conn_baud} > {target_baud}')
     target_index = BAUDS.index(target_baud)
     with Serial(port, conn_baud, timeout=.2) as ser:
-        assert run_cmd(ser, CMD)
+        for _ in range(5):
+            if run_cmd(ser, CMD):
+                break
         assert run_cmd(ser, [s.format(target_index) for s in CMD_BAUD])
         assert run_cmd(ser, CMD_RESET)
 

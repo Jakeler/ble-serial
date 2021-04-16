@@ -27,7 +27,7 @@ def read_serial(port: str, conn_baud: int, expected_data: bytes, end_func):
     }
 
 def write_serial(port: str, conn_baud: int, data: bytes, chunk_size: int, delay: float):
-    data_len = len(data)//10
+    data_len = len(data)
 
     with Serial(port, conn_baud, timeout=1.0) as ser:
         print(f'Connected to write serial {port}:{conn_baud}')
@@ -55,5 +55,5 @@ def run_ble_serial():
 
 def signal_serial_end():
     pid = subprocess.check_output(['pgrep', 'ble-serial'])
-    print(f'Got PID {pid}')
+    # print(f'Got PID {pid}')
     os.kill(int(pid), signal.SIGINT)
