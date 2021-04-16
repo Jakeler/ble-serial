@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor as TPE
+import csv
 from time import sleep
 
 from hm11_at_config import set_module_baud
@@ -39,8 +40,21 @@ class Dir:
     def __str__(self):
         return ('BLE >> UART', 'UART >> BLE')[self.id]
 
+class Log:
+    def __init__(self, filename: str):
+        fieldnames = ['dir', 'rated_baud', 'packet_size', 'delay', 
+            'valid', 'loss_percent', 'rx_bits', 'rx_baud']
+        self.csvfile = open(filename, 'w', newline='')
+        self.writer = csv.DictWriter(self.csvfile, fieldnames=fieldnames)
+        self.writer.writeheader()
 
-def run_test(exc: TPE, dir: Dir, baud: int, packet_size: int, delay: float):
+    def write(self, data: dict):
+        self.writer.writerow(data)
+
+    def close(self):
+        self.csvfile.close()
+
+def run_test(exc: TPE, log: Log, dir: Dir, baud: int, packet_size: int, delay: float):
     futw = executor.submit(write_serial, dir.write, baud, CONTENT, PACKET_SIZE, DELAY)
     futr = executor.submit(read_serial, dir.read, baud, CONTENT)
     
@@ -51,8 +65,8 @@ def run_test(exc: TPE, dir: Dir, baud: int, packet_size: int, delay: float):
         'packet_size': packet_size,
         'delay': delay,
     })
+    log.write(result)
     print(result, end='\n\n')
-    return result
 
 
 baud_to_test = [9600, 19200, 115200]
@@ -62,6 +76,7 @@ if __name__ == "__main__":
     # Reset to start baud after fail
     # set_module_baud(PORT_UART, 19200, 9600)
 
+    log = Log('log.csv')
 
     for baud in baud_to_test:
         print(f'\nTesting baud: {baud}')
@@ -73,9 +88,10 @@ if __name__ == "__main__":
             futb = executor.submit(run_ble_serial)
             sleep(3)
 
-            run_test(executor, Dir.BLE_UART(), baud, PACKET_SIZE, DELAY)
-            run_test(executor, Dir.UART_BLE(), baud, PACKET_SIZE, DELAY)
+            run_test(executor, log, Dir.BLE_UART(), baud, PACKET_SIZE, DELAY)
+            run_test(executor, log, Dir.UART_BLE(), baud, PACKET_SIZE, DELAY)
 
             signal_serial_end()
 
     set_module_baud(PORT_UART, prev, baud_to_test[0])
+    log.close()
