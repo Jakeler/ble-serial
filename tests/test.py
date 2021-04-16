@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor as TPE
-import csv
+import os, csv
 from time import sleep
 
 from hm11_at_config import set_module_baud
@@ -75,8 +75,9 @@ BYTE_DELAY = [0.000, 1/1000, 1/200] # bytes/sec
 if __name__ == "__main__":
     # Reset to start baud after fail
     # set_module_baud(PORT_UART, 19200, 9600)
+    # os.remove(PORT_BLE)
 
-    log = Log('log.csv')
+    log = Log('results/log.csv')
 
     for baud in baud_to_test:
         print(f'\nTesting baud: {baud}')
