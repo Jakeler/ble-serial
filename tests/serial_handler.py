@@ -1,10 +1,12 @@
 from serial import Serial
 from time import sleep, perf_counter
+import subprocess, os, signal
 
-def read_serial(port: str, conn_baud: int, expected_data: bytes):
+def read_serial(port: str, conn_baud: int, expected_data: bytes, end_func):
     buffer = bytearray()
     timeout = 1.0
     with Serial(port, conn_baud, timeout=timeout) as ser:
+        print(f'Connected to read serial {port}:{conn_baud}')
         t1 = perf_counter()
         while True:
             chunk = ser.read(ser.in_waiting or 1)
@@ -17,15 +19,18 @@ def read_serial(port: str, conn_baud: int, expected_data: bytes):
     print(f'Completed read {len(buffer)} bytes in {tt:.3f} s')
     print(f'Rate {rate:.2f} byte/s = {rate*8:.0f} bit/s = {rate*10:.0f} baud')
 
+    end_func() # stop ble-serial here
+
     return {
         'valid': expected_data == buffer,
         'loss_percent': (1 - len(buffer) / len(expected_data)) * 100
     }
 
 def write_serial(port: str, conn_baud: int, data: bytes, chunk_size: int, delay: float):
-    data_len = len(data)
+    data_len = len(data)//10
 
     with Serial(port, conn_baud, timeout=1.0) as ser:
+        print(f'Connected to write serial {port}:{conn_baud}')
         t1 = perf_counter()
         for i in range(0, data_len, chunk_size):
             start, end = (i, i+chunk_size)
@@ -38,3 +43,17 @@ def write_serial(port: str, conn_baud: int, data: bytes, chunk_size: int, delay:
     print() # do not overwrite replaced lines
     print(f'Completed write {data_len} bytes in {tt:.3f} s')
     print(f'Rate {rate:.2f} byte/s = {rate*8:.0f} bit/s = {rate*10:.0f} baud')
+
+
+# Needs start after reset of set_module_baud()
+def run_ble_serial():
+    terminal = 'konsole -e'
+    binary = 'ble-serial'
+    mac = '20:91:48:DF:76:D9'
+    return subprocess.run(f'{terminal} {binary} -d {mac} -v', 
+        shell=True, check=True)
+
+def signal_serial_end():
+    pid = subprocess.check_output(['pgrep', 'ble-serial'])
+    print(f'Got PID {pid}')
+    os.kill(int(pid), signal.SIGINT)
