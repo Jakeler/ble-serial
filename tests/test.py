@@ -25,11 +25,11 @@ class Dir:
 
     @classmethod
     def BLE_UART(cls):
-        cls(0)
+        return cls(0)
 
     @classmethod
     def UART_BLE(cls):
-        cls(1)
+        return cls(1)
 
     def __init__(self, dir: int):
         self.id = dir
@@ -46,12 +46,12 @@ def run_test(exc: TPE, dir: Dir, baud: int, packet_size: int, delay: float):
     
     result = futr.result()
     result.update({
-        'dir': dir,
+        'dir': str(dir),
         'rated_baud': baud,
         'packet_size': packet_size,
         'delay': delay,
     })
-    print(result)
+    print(result, end='\n\n')
     return result
 
 
