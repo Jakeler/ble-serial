@@ -13,7 +13,7 @@ with open('../README.md', 'rb') as f:
     CONTENT = f.read()
     # print(CONTENT)
 
-# CONTENT = CONTENT[:500]
+# CONTENT = CONTENT[:1000]
 
 class Dir:
     _ports = [
@@ -54,7 +54,7 @@ class Log:
 def run_test(exc: TPE, log: Log, dir: Dir, baud: int, packet_size: int, delay: float):
     futw = executor.submit(write_serial, dir.write, baud, CONTENT, packet_size, delay)
     futr = executor.submit(read_serial, dir.read, baud, CONTENT)
-    
+
     result = futr.result()
     result.update({
         'dir': str(dir),
@@ -66,11 +66,12 @@ def run_test(exc: TPE, log: Log, dir: Dir, baud: int, packet_size: int, delay: f
     print(result, end='\n\n')
 
 
-baud_to_test = [9600, 19200, 115200]
+baud_to_test = [9600, 19200, 57600, 115200, 230400]
 prev = baud_to_test[0]
 
-PACKET_SIZE = [4, 16, 64]
-BYTE_DELAY = [0.000, 1/1000, 1/200] # bytes/sec
+# PACKET_SIZE = [4, 16, 64]
+PACKET_SIZE = [32]
+BYTE_DELAY = [0, 1/2000, 1/1000, 1/500] # bytes/sec
 
 if __name__ == "__main__":
     # Reset to start baud after fail
