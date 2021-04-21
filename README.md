@@ -31,7 +31,7 @@ The package can be either started directly with `-m`:
 ```console
 $ python -m ble_serial ARGUMENTS # Main tool = ble-serial
 $ python -m ble_serial.scan # BLE scan = ble-scan
-$ python -m ble_serial.setup_com0com # Windows only setup = ble-setup
+$ python -m ble_serial.setup_com0com # Windows only setup = ble-com-setup
 ```
 
 Or installed with `pip` from the current directory:
@@ -43,10 +43,10 @@ and started as usual.
 ### Additional steps for Windows
 Windows does not have a builtin feature to create virtual serial ports (like Linux does), so it is required to install a additional driver. I decided to use the open source `com0com` Null-modem emulator, downloaded from [here](https://sourceforge.net/projects/signed-drivers/files/com0com/v3.0/) as signed version. This is required because unsigned drivers can not be installed anymore. Note that on latest Windows 10 you likely still have to disable secure boot for it to work.
 
-ble-serial includes the `ble-setup` script to make the `com0com` configuration easier:
+ble-serial includes the `ble-com-setup` script to make the `com0com` configuration easier:
 ```console
-> ble-setup.exe -h
-usage: ble-setup [-h] [--install-path INSTALL_PATH]
+> ble-com-setup.exe -h
+usage: ble-com-setup [-h] [--install-path INSTALL_PATH]
 
 Setup required COM port pair
 

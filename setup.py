@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as fr:
 
 setuptools.setup(
     name="ble-serial",
-    version="1.3.0",
+    version="2.0.0",
     author="Jake",
     author_email="ble-serial-pypi@ja-ke.tech",
     description="A package to connect BLE serial adapters",
@@ -35,7 +35,8 @@ setuptools.setup(
             'ble-scan=ble_serial.scan:main',
             'ble-serial=ble_serial.main:launch',
         ] + (
-            ['ble-setup=ble_serial.setup_com0com:main'] if platform.system() == "Windows" else []
+            ['ble-com-setup=ble_serial.setup_com0com:main'] if platform.system() == "Windows"
+            else []
         )
     },
 )
