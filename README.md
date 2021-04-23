@@ -79,7 +79,7 @@ Setup done!
 
 Hit any key to close
 ```
-As you can see it created the `BLE`<->`COM9` pair. ble-serial will internally connect to `BLE`, users can then send/receive the data on `COM9`
+As you can see it created the `BLE`<->`COM9` pair. ble-serial will internally connect to `BLE`, users can then send/receive the data on `COM9`.
 
 Otherwise there exist multiple proprietary serial port emulators, these should work too. Just manually create a pair that includes a port named `BLE`.
 
