@@ -1,6 +1,9 @@
 # BLE Serial
-A tool to connect Bluetooth 4.0+ Low Energy to UART modules and normal PCs/laptops/RaspberryPi. 
+A tool to connect Bluetooth 4.0+ Low Energy to UART modules and normal PCs/laptops/RaspberryPi.
+
 It fulfills the same purpose as `rfcomm bind` for the old Bluetooth 2.0, creating a virtual serial port in `/dev/pts/x`, which makes it usable with any terminal or application.
+
+On Windows it provides a `COM` port, similar to the Microsoft "Standard Serial over Bluetooth" (a driver which exist since Windows XP and unsurprisingly also does not support BLE standards).
 
 ## Installation
 ### Standard (via Python Package Index)
@@ -11,7 +14,7 @@ $ pip install ble-serial
 
 Now you should have 2 new scripts: `ble-scan` and the main `ble-serial`.
 
-On Linux you ready now and can directly jump to the usage section!
+On Linux you are ready now and can directly jump to the usage section!
 
 ### From source (for developers)
 You can clone the repository with:
