@@ -9,7 +9,9 @@ from ble_serial.log.console_log import setup_logger
 class Main():
     def start(self):
         try:
+            logging.debug(f'Running: {self.args}')
             asyncio.run(self._run())
+
         # KeyboardInterrupt causes bluetooth to disconnect, but still a exception would be printed here
         except KeyboardInterrupt as e:
             logging.debug('Exit due to KeyboardInterrupt')
@@ -17,7 +19,7 @@ class Main():
     def parse_args(self):
         parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
             description='Create virtual serial ports from BLE devices.')
-        
+
         parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
             help='Increase verbosity to log all data going through')
         parser.add_argument('-d', '--dev', dest='device', required=True,
@@ -38,6 +40,7 @@ class Main():
             help=DEFAULT_PORT_MSG)
         parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
             help='The GATT characteristic to subscribe to notifications to read the serial data')
+
         self.args = parser.parse_args()
 
     async def _run(self):
