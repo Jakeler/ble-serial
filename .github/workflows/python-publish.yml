@@ -27,6 +27,6 @@ jobs:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        python setup.py sdist --formats=gztar,zip
+        python setup.py sdist
         python setup.py bdist_wheel -p manylinux1_x86_64
         twine upload dist/*
