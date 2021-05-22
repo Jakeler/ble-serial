@@ -14,35 +14,46 @@ class BLE_interface():
         await self.dev.connect()
         logging.info(f'Device {self.dev.address} connected')
 
-        self.write_char = self.find_char(write_uuid, 'write-without-response')
-        self.read_char = self.find_char(read_uuid, 'notify')
+        self.write_char = self.find_char(write_uuid, ['write', 'write-without-response'])
+        self.read_char = self.find_char(read_uuid, ['notify'])
 
         await self.dev.start_notify(self.read_char, self.handle_notify)
 
-    def find_char(self, uuid: Optional[str], req_prop: str) -> BleakGATTCharacteristic:
-        found_char = None
+    def find_char(self, uuid: Optional[str], req_props: [str]) -> BleakGATTCharacteristic:
+        name = req_props[0]
 
         # Use user supplied UUID first, otherwise try included list
         if uuid:
-            uuid_candidates = uuid
+            uuid_candidates = [uuid]
         else:
             uuid_candidates = ble_chars
-            logging.debug(f'No {req_prop} uuid specified, trying {ble_chars}')
+            logging.debug(f'No {name} uuid specified, trying {ble_chars}')
 
+        results = []
         for srv in self.dev.services:
             for c in srv.characteristics:
                 if c.uuid in uuid_candidates:
-                    found_char = c
-                    logging.debug(f'Found {req_prop} characteristic {c}')
-                    break
+                    results.append(c)
 
-        # Check if it has the required properties
-        assert found_char, \
-            "No characteristic with specified UUID found!"
-        assert (req_prop in found_char.properties), \
-            f"Specified characteristic has no {req_prop} property!"
+        assert len(results) > 0, \
+            f"No characteristic with specified UUID {uuid_candidates} found!"
 
-        return found_char
+        res_str = '\n'.join(f'\t{c} {c.properties}' for c in results)
+        logging.debug(f'Characteristic candidates for {name}: \n{res_str}')
+
+        # Check if there is a intersection of permission flags
+        results[:] = [c for c in results if set(c.properties) & set(req_props)]
+
+        assert len(results) > 0, \
+            f"No characteristic with {req_props} property found!"
+
+        assert len(results) == 1, \
+            f'Multiple matching {name} characteristics found, please specify one'
+
+        # must be valid here
+        found = results[0]
+        logging.info(f'Found {name} characteristic {found}')
+        return found
 
     def set_receiver(self, callback):
         self._cb = callback
