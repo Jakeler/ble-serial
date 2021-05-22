@@ -27,7 +27,7 @@ class BLE_interface():
             uuid_candidates = [uuid]
         else:
             uuid_candidates = ble_chars
-            logging.debug(f'No {name} uuid specified, trying {ble_chars}')
+            logging.debug(f'No {name} uuid specified, trying builtin list')
 
         results = []
         for srv in self.dev.services:
@@ -52,7 +52,7 @@ class BLE_interface():
 
         # must be valid here
         found = results[0]
-        logging.info(f'Found {name} characteristic {found}')
+        logging.info(f'Found {name} characteristic {found.uuid} (H. {found.handle})')
         return found
 
     def set_receiver(self, callback):
