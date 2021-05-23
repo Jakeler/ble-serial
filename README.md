@@ -3,7 +3,7 @@ A tool to connect Bluetooth 4.0+ Low Energy to UART modules and normal PCs/lapto
 
 It fulfills the same purpose as `rfcomm bind` for the old Bluetooth 2.0, creating a virtual serial port in `/dev/pts/x`, which makes it usable with any terminal or application.
 
-On Windows it provides a `COM` port, similar to the Microsoft "Standard Serial over Bluetooth" (a driver which exist since Windows XP and unsurprisingly also does not support BLE standards).
+On Windows it provides a `COM` port, similar to the Microsoft "Standard Serial over Bluetooth" (a driver which exists since Windows XP and unsurprisingly also does not support BLE standards).
 
 ## Installation
 ### Standard (via Python Package Index)
@@ -119,7 +119,8 @@ optional arguments:
 
 On Bluetooth 2.0 there was a "serial port profile", with 4.0 - 5.2 (BLE) there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own ID to implement the features. 
 ```py
-'0000ff02-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter
+'0000ff01-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter: read/notify
+'0000ff02-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter: write
 '0000ffe1-0000-1000-8000-00805f9b34fb', # TI CC245x (HM-10, HM-11)
 ```
 Some usual IDs are included in ble-serial, these will be tried automatically if nothing is specified.
@@ -143,7 +144,7 @@ Completed deep scan of 20:91:48:4C:4C:54
 Now the interesting parts are the characteristics, grouped into services. The ones belows the first service starting with `00002` are not interesting in this case, because they are standard values (for example the device name), if you want to know more look at [this list](https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026#file-allgattcharacteristics-java-L57).
 
 After the ID, handle and type the permissions are listed in []. We are searching for a characteristic that allows writing = sending to the device, the only candidate in here is `0000ffe1-0000-1000-8000-00805f9b34fb` (spoiler: a HM-11 module again). 
-Same procedure with the read characteristic, this modules handle read and write through the same characteristic, but some other chips split it.
+Same procedure with the read characteristic, this modules handles read and write through the same characteristic, but some other chips split it up.
 
 
 ### Connecting a device
@@ -186,17 +187,18 @@ $ ble-serial -d 20:91:48:4c:4c:54
 18:36:12.291 | INFO | ble_interface.py: Device 20:91:48:4C:4C:54 connected
 18:36:12.637 | INFO | main.py: Running main loop!
 ```
-This log shows a successful start, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. In addition it creates automatically a symlink to `/tmp/ttyBLE`, so you can easily access it there always on the same file, the default can be changed with the `-p`/`--port` option.
+This log shows a successful start, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. 
+In addition it automatically creates a symlink to `/tmp/ttyBLE`, so you can easily access it always on the same file, the default can be changed with the `-p`/`--port` option.
 
 Now it is possible to use any serial monitor program, just connect to that port, baud rate etc. does not matter, it will work with any value (settings are ignored, because it is only virtual).
 The software acts as transparent bridge, everything that is sent to that virtual port gets transmitted to the BLE module and comes out of the TX pin there. Same in the other direction, everything that the BLE module receives on the RX pin gets transmitted to the PC and shows up in the virtual serial port. This makes it also possible to add ble module to create a wireless serial connection with existing hard/software.
 
-As mentioned before, the start might fail because the ID is not in the list, then you can manually specify the correct characteristic ID like this:
+As mentioned before, the start might fail because the ID is not in the list, then you can manually specify the correct write characteristic ID like this:
 ```
 $ ble-serial -d 20:91:48:4c:4c:54 -w 0000ffe1-0000-1000-8000-00805f9b34fb
 ```
 
-Per default it does not explicitly subscribe to the read characteristic, because many modules (like HM-11) send notifications anyway. There are modules that require this though. If you don't receive any data then you have specify the uuid for reading with `-r`/`--read-uuid`, for example:
+Same for reading with `-r`/`--read-uuid`, for example:
 ```
 $ ble-serial -d 20:91:48:4c:4c:54 -r 0000ffe1-0000-1000-8000-00805f9b34fb
 ```
@@ -221,8 +223,20 @@ You can use `-v` to increase the log verbosity to DEBUG:
 18:31:25.373 | DEBUG | ble_interface.py: Sending b'hello world'
 ```
 This will log all traffic going through. Note that everything shows up two times, because it goes through the ble module and then into the serial port and vice versa.
+It also helps with figuring out how characteristics are selected:
+```console
+14:32:47.589 | DEBUG | ble_interface.py: No write uuid specified, trying builtin list
+14:32:47.589 | DEBUG | ble_interface.py: Characteristic candidates for write: 
+        0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific ['read', 'write-without-response', 'notify']
+14:32:47.589 | INFO | ble_interface.py: Found write characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
+14:32:47.589 | DEBUG | ble_interface.py: No notify uuid specified, trying builtin list
+14:32:47.589 | DEBUG | ble_interface.py: Characteristic candidates for notify: 
+        0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific ['read', 'write-without-response', 'notify']
+14:32:47.589 | INFO | ble_interface.py: Found notify characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
+```
+Always try the verbose option if something is not working properly.
 
-As always, i hope it was helpful. If you encounter problems, please use the issue tracker on [GitHub](https://github.com/Jakeler/ble-serial/issues).
+As always, I hope it was helpful. If you encounter problems, please use the issue tracker on [GitHub](https://github.com/Jakeler/ble-serial/issues).
 
 ### Known limitations
 * Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
