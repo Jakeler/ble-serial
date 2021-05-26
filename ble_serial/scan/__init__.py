@@ -1,5 +1,6 @@
 from bleak import BleakScanner, BleakClient
 from bleak.backends.service import BleakGATTServiceCollection
+from bleak.exc import BleakError
 import argparse, asyncio
 
 
@@ -50,5 +51,8 @@ def main():
         help='Try to connect to device and read out service/characteristic UUIDs')
     args = parser.parse_args()
 
-    asyncio.run(scan(args))
+    try:
+        asyncio.run(scan(args))
+    except BleakError as be:
+        print('ERROR:', be)
 
