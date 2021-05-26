@@ -5,7 +5,7 @@ import argparse, asyncio
 
 async def scan(args):
     if args.addr:
-        await deep_scan(args.addr)
+        await deep_scan(args.addr, args.sec)
     else:
         await general_scan(args.sec)
 
@@ -21,10 +21,10 @@ async def general_scan(time: float):
     print("\nFinished BLE scan")
 
 
-async def deep_scan(dev: str):
+async def deep_scan(dev: str, time: float):
     print(f"Started deep scan of {dev}\n")
 
-    async with BleakClient(dev) as client:
+    async with BleakClient(dev, timeout=time) as client:
         print_details(await client.get_services())
 
     print(f"\nCompleted deep scan of {dev}")
