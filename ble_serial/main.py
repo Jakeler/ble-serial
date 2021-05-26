@@ -24,7 +24,9 @@ class Main():
             help='Increase verbosity to log all data going through')
         parser.add_argument('-d', '--dev', dest='device', required=True,
             help='BLE device address to connect (hex format, can be seperated by colons)')
-        parser.add_argument('-t', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
+        parser.add_argument('-t', '--timeout', dest='timeout', required=False, default=5.0, type=float, metavar='SEC',
+            help='BLE connect/discover timeout in seconds')
+        parser.add_argument('-a', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
             help='BLE address type, either public or random')
         parser.add_argument('-i', '--interface', dest='adapter', required=False, default='hci0',
             help='BLE host adapter number to use')
@@ -59,7 +61,8 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.start(args.device, args.addr_type, args.adapter, args.write_uuid, args.read_uuid)
+            await self.bt.start(args.device, args.addr_type, args.adapter, args.timeout,
+                args.write_uuid, args.read_uuid)
             logging.info('Running main loop!')
             self.main_loop = asyncio.gather(self.bt.send_loop(), self.uart.run_loop())
             await self.main_loop

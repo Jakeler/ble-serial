@@ -6,10 +6,13 @@ import logging, asyncio
 from typing import Optional
 
 class BLE_interface():
-    async def start(self, addr_str, addr_type, adapter, write_uuid, read_uuid,):
-        self.dev = BleakClient(addr_str, adapter=adapter, address_type=addr_type) # address_type used only in Windows .NET currently
+    async def start(self, addr_str, addr_type, adapter, timeout, write_uuid, read_uuid,):
         self._send_queue = asyncio.Queue()
+
+        # address_type used only in Windows .NET currently
+        self.dev = BleakClient(addr_str, adapter=adapter, address_type=addr_type, timeout=timeout)
         self.dev.set_disconnected_callback(self.handle_disconnect)
+
         logging.info(f'Trying to connect with {addr_str}')
         await self.dev.connect()
         logging.info(f'Device {self.dev.address} connected')
