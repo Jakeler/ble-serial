@@ -55,5 +55,6 @@ class COM(ISerial):
         logging.info('Stopping RX+TX loop')
 
     def remove(self):
-        self.serial.close()
+        if hasattr(self, 'serial'):
+            self.serial.close()
 

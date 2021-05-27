@@ -76,7 +76,7 @@ class BLE_interface():
         self._send_queue.put_nowait(None)
 
     async def disconnect(self):
-        if self.dev.is_connected:
+        if hasattr(self, 'dev') and self.dev.is_connected:
             if hasattr(self, 'read_char'):
                 await self.dev.stop_notify(self.read_char)
             await self.dev.disconnect()
