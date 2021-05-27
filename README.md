@@ -159,23 +159,23 @@ Create virtual serial ports from BLE devices.
 optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         Increase verbosity to log all data going through (default: False)
+  -p PORT, --port PORT  Symlink to virtual serial port (default: /tmp/ttyBLE)
   -d DEVICE, --dev DEVICE
-                        BLE device address to connect (hex format, can be seperated by colons) (default: None)
-  -t {public,random}, --address-type {public,random}
+                        BLE device address to connect (hex format, can be separated by colons) (default: None)
+  -t SEC, --timeout SEC
+                        BLE connect/discover timeout in seconds (default: 5.0)
+  -a {public,random}, --address-type {public,random}
                         BLE address type, either public or random (default: public)
   -i ADAPTER, --interface ADAPTER
                         BLE host adapter number to use (default: hci0)
   -m MTU, --mtu MTU     Max. bluetooth packet data size in bytes used for sending (default: 20)
   -w WRITE_UUID, --write-uuid WRITE_UUID
-                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out
-                        (default: None)
-  -l FILENAME, --log FILENAME
-                        Enable optional logging of all bluetooth traffic to file (default: None)
-  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l (default:
-                        False)
-  -p PORT, --port PORT  Symlink to virtual serial port (default: /tmp/ttyBLE)
+                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out (default: None)
   -r READ_UUID, --read-uuid READ_UUID
                         The GATT characteristic to subscribe to notifications to read the serial data (default: None)
+  -l FILENAME, --log FILENAME
+                        Enable optional logging of all bluetooth traffic to file (default: None)
+  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l (default: False)
 
 ```
 Only the device address is always required:

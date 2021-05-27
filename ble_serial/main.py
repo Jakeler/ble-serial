@@ -22,8 +22,11 @@ class Main():
 
         parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
             help='Increase verbosity to log all data going through')
+        parser.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
+            help=DEFAULT_PORT_MSG)
+
         parser.add_argument('-d', '--dev', dest='device', required=True,
-            help='BLE device address to connect (hex format, can be seperated by colons)')
+            help='BLE device address to connect (hex format, can be separated by colons)')
         parser.add_argument('-t', '--timeout', dest='timeout', required=False, default=5.0, type=float, metavar='SEC',
             help='BLE connect/discover timeout in seconds')
         parser.add_argument('-a', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
@@ -34,14 +37,13 @@ class Main():
             help='Max. bluetooth packet data size in bytes used for sending')
         parser.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
             help='The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out')
+        parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
+            help='The GATT characteristic to subscribe to notifications to read the serial data')
+
         parser.add_argument('-l', '--log', dest='filename', required=False,
             help='Enable optional logging of all bluetooth traffic to file')
         parser.add_argument('-b', '--binary', dest='binlog', required=False, action='store_true',
             help='Log data as raw binary, disable transformation to hex. Works only in combination with -l')
-        parser.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
-            help=DEFAULT_PORT_MSG)
-        parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
-            help='The GATT characteristic to subscribe to notifications to read the serial data')
 
         self.args = parser.parse_args()
 
