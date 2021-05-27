@@ -28,6 +28,14 @@ def set_module_baud(port: str, conn_baud: int, target_baud: int):
         assert run_cmd(ser, [s.format(target_index) for s in CMD_BAUD])
         assert run_cmd(ser, CMD_RESET)
 
+def reset_baud(port: str):
+    for b in BAUDS:
+        try:
+            set_module_baud(port, b, 9600)
+            break
+        except AssertionError:
+            print(f'{b} was not correct...\n')
+
 def run_cmd(ser: Serial, cmd: tuple[str, str]) -> bool:
     ser.write(cmd[0].encode())
     out = ser.read(size=32).decode()
