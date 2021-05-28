@@ -36,7 +36,7 @@ class COM(ISerial):
             except Empty as e:
                 logging.debug('TX queue timeout: was empty')
 
-        logging.debug(f'TX loop ended {self.alive=} {self.serial.is_open=}')
+        logging.debug(f'TX loop ended alive={self.alive} open={self.serial.is_open}')
     
     def _run_rx(self):
         # based on ReaderThread(threading.Thread) from:
@@ -48,7 +48,7 @@ class COM(ISerial):
             logging.debug(f'Read: {data}')
             self.loop.call_soon_threadsafe(self._cb, data) # needed as asyncio.Queue is not thread safe
 
-        logging.debug(f'RX loop ended {self.alive=} {self.serial.is_open=}')
+        logging.debug(f'RX loop ended, alive={self.alive} open={self.serial.is_open}')
 
     def stop_loop(self):
         self.alive = False
