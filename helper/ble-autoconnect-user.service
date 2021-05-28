@@ -1,0 +1,10 @@
+[Unit]
+Description=Automatically connect to available bluettooth devices from config
+
+[Service]
+Environment=PATH=%h/ble-venv/bin/:/usr/bin
+WorkingDirectory=%h/ble-serial/helper/
+ExecStart=%h/ble-venv/bin/python ble-autoconnect.py
+
+[Install]
+WantedBy=default.target
