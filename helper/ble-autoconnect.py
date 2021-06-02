@@ -1,6 +1,7 @@
 """Bluetooth LE automated connections:
-Uses bleak to check if devices exist, implementation should be cross platform. If a known device is found
-then it should automatically start the specified tool (for example ble-serial) to connect with it.
+Uses bleak to check if devices exist, implementation is cross platform.
+It does automatically connect and start the specified tool (for example ble-serial),
+if a known device is found. See `autoconnect.ini` for configuration.
 """
 
 import asyncio

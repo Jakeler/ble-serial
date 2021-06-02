@@ -1,5 +1,7 @@
 """Bluetooth LE automated connections:
-This script listens on the system DBus for events of BlueZ scans.
+This script listens on the system DBus for events of BlueZ scan. 
+So far only a more low level proof of concept that just logs detected devices. 
+Use the bleak based `ble-autoconnect.py` to actually connect and start ble-serial.
 """
 
 import dbus
