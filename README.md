@@ -236,7 +236,32 @@ It also helps with figuring out how characteristics are selected:
 ```
 Always try the verbose option if something is not working properly.
 
-As always, I hope it was helpful. If you encounter problems, please use the issue tracker on [GitHub](https://github.com/Jakeler/ble-serial/issues).
+### Automated connections
+The repo [`helper/`](https://github.com/Jakeler/ble-serial/tree/master/helper) directory contains a `ble-autoconnect.py` script:
+```console
+$ python helper/ble-autoconnect.py -h
+usage: ble-autoconnect.py [-h] [-c CONFIG] [-v]
+
+Service to automatically connect with devices that get available.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Path to a INI file with device configs (default: autoconnect.ini)
+  -v, --verbose         Increase log level from info to debug (default: False)
+
+```
+This continuously scans for devices and compares them with the configuration, it then automatically starts up `ble-serial` (or other tools) if a known device is detected.
+This should bring similar convenience like USB adapters, just turn the BLE device on and
+the serial port shows up on the PC. See the example `autoconnect.ini` for configuration.
+
+On Linux you can also use the included systemd (user) service to auto start this on boot.
 
 ### Known limitations
 * Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
+
+# Closing remarks
+If you encounter unexpected problems, please use the [issue tracker](https://github.com/Jakeler/ble-serial/issues). For general questions there is also the discussions tab.
+
+As always, I hope it was helpful, if you like it then I would appreciate if you could star it on [GitHub](https://github.com/Jakeler/ble-serial). 
+
