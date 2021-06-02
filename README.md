@@ -257,11 +257,10 @@ the serial port shows up on the PC. See the example `autoconnect.ini` for config
 
 On Linux you can also use the included systemd (user) service to auto start this on boot.
 
-### Known limitations
+## Known limitations
 * Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
 
-# Closing remarks
+## Closing remarks
 If you encounter unexpected problems, please use the [issue tracker](https://github.com/Jakeler/ble-serial/issues). For general questions there is also the discussions tab.
-
 As always, I hope it was helpful, if you like it then I would appreciate if you could star it on [GitHub](https://github.com/Jakeler/ble-serial). 
 
