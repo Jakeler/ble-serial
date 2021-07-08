@@ -1,6 +1,6 @@
 import platform
 
-if platform.system() == 'Linux':
+if platform.system() in ['Linux', 'Darwin']:
     from ble_serial.ports.linux_pty import UART as platform_uart
     DEFAULT_PORT = '/tmp/ttyBLE'
     DEFAULT_PORT_MSG = 'Symlink to virtual serial port'
