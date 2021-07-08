@@ -101,7 +101,13 @@ Finished BLE scan
 ```
 The output is a list of the recognized nearby devices. After the MAC address and signal strength it prints out the device name, if it can be resolved.
 
-If there are no devices found it might help to increase the scan time. All discoverable devices must actively send advertisements, the interval of this can be quite long  to save power, so try for example 30 seconds in this case.
+On macOS it displays a system specific device ID instead of a MAC address:
+```
+55AEB150-5AF1-4318-A02E-19A46223F572 (RSSI=-70): nRF52 Accelerometer
+```
+It can be used simply in place of the MAC to specify a device to connect in the following section.
+
+If there are no devices found it might help to increase the scan time. All discoverable devices must actively send advertisements, the interval of this can be quite long to save power, try for example 30 seconds in this case.
 ```console
 $ ble-scan -h
 usage: ble-scan [-h] [-t SEC] [-d ADDR]
@@ -117,16 +123,16 @@ optional arguments:
                         (default: None)
 ```
 
-On Bluetooth 2.0 there was a "serial port profile", with 4.0 - 5.2 (BLE) there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own ID to implement the features. 
+On Bluetooth 2.0 there was a "serial port profile", with 4.0 - 5.2 (BLE) there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own UUIDs to implement the features. 
 ```py
 '0000ff01-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter: read/notify
 '0000ff02-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter: write
 '0000ffe1-0000-1000-8000-00805f9b34fb', # TI CC245x (HM-10, HM-11)
 ```
-Some usual IDs are included in ble-serial, these will be tried automatically if nothing is specified.
+Some usual UUIDs are included in ble-serial, these will be tried automatically if nothing is specified.
 You might skip this part and start directly with the connection.
 
-Otherwise to find the correct ID, use the deep scan option. It expects a device MAC address, connects to it and reads out all services/characteristic/descriptors:
+Otherwise to find the correct UUID, use the deep scan option. It expects a device MAC/ID, connects to it and reads out all services/characteristic/descriptors:
 ```console
 $ ble-scan -d 20:91:48:4C:4C:54
 Started deep scan of 20:91:48:4C:4C:54
@@ -143,9 +149,23 @@ Completed deep scan of 20:91:48:4C:4C:54
 ```
 Now the interesting parts are the characteristics, grouped into services. The ones belows the first service starting with `00002` are not interesting in this case, because they are standard values (for example the device name), if you want to know more look at [this list](https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026#file-allgattcharacteristics-java-L57).
 
-After the ID, handle and type the permissions are listed in []. We are searching for a characteristic that allows writing = sending to the device, the only candidate in here is `0000ffe1-0000-1000-8000-00805f9b34fb` (spoiler: a HM-11 module again). 
-Same procedure with the read characteristic, this modules handles read and write through the same characteristic, but some other chips split it up.
+After the UUID, handle and type the permissions are listed in []. We are searching for a characteristic that allows writing = sending to the device, the only candidate in here is `0000ffe1-0000-1000-8000-00805f9b34fb` (spoiler: a HM-11 module again).
+Same procedure with the read characteristic, this modules handles read and write through the same characteristic.
 
+Some other chips split it up, for example (this time on macOS with device ID):
+```console
+$ ble-scan -d 55AEB150-5AF1-4318-A02E-19A46223F572
+Started deep scan of 55AEB150-5AF1-4318-A02E-19A46223F572
+
+SERVICE 00000001-af0e-4c28-95a4-4509fd91e0bb (Handle: 10): SDP
+     CHARACTERISTIC 00000006-af0e-4c28-95a4-4509fd91e0bb (Handle: 11): Unknown ['read', 'notify']
+         DESCRIPTOR 00002902-0000-1000-8000-00805f9b34fb (Handle: 13): Client Characteristic Configuration
+     CHARACTERISTIC 00000005-af0e-4c28-95a4-4509fd91e0bb (Handle: 14): TCS-BIN ['write-without-response', 'notify']
+         DESCRIPTOR 00002902-0000-1000-8000-00805f9b34fb (Handle: 16): Client Characteristic Configuration
+
+Completed deep scan of 55AEB150-5AF1-4318-A02E-19A46223F572
+```
+As you can see, here the read/notify UUID is `00000006-af0e-4c28-95a4-4509fd91e0b` and write UUID `00000005-af0e-4c28-95a4-4509fd91e0bb`.
 
 ### Connecting a device
 The `ble-serial` tool itself has a few more options:
@@ -187,13 +207,15 @@ $ ble-serial -d 20:91:48:4c:4c:54
 18:36:12.291 | INFO | ble_interface.py: Device 20:91:48:4C:4C:54 connected
 18:36:12.637 | INFO | main.py: Running main loop!
 ```
-This log shows a successful start, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. 
+This log shows a successful start on Linux, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. It uses the same mechanism on macOS, just the path is slightly different, in the format `/dev/ttys000`.
 In addition it automatically creates a symlink to `/tmp/ttyBLE`, so you can easily access it always on the same file, the default can be changed with the `-p`/`--port` option.
+
+On Windows it uses the port pair created in the setup described above, this does not dynamically change and endpoint is always `COM9` if you use the default script.
 
 Now it is possible to use any serial monitor program, just connect to that port, baud rate etc. does not matter, it will work with any value (settings are ignored, because it is only virtual).
 The software acts as transparent bridge, everything that is sent to that virtual port gets transmitted to the BLE module and comes out of the TX pin there. Same in the other direction, everything that the BLE module receives on the RX pin gets transmitted to the PC and shows up in the virtual serial port. This makes it also possible to add ble module to create a wireless serial connection with existing hard/software.
 
-As mentioned before, the start might fail because the ID is not in the list, then you can manually specify the correct write characteristic ID like this:
+As mentioned before, the start might fail because the UUID is not in the list, then you can manually specify the correct write characteristic UUID like this:
 ```
 $ ble-serial -d 20:91:48:4c:4c:54 -w 0000ffe1-0000-1000-8000-00805f9b34fb
 ```
