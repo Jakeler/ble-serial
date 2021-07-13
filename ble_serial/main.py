@@ -39,6 +39,8 @@ class Main():
             help='The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out')
         parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
             help='The GATT characteristic to subscribe to notifications to read the serial data')
+        parser.add_argument('--permit', dest='mode', required=False, default='rw', choices=['ro', 'rw', 'wo'],
+            help='Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo)')
 
         parser.add_argument('-l', '--log', dest='filename', required=False,
             help='Enable optional logging of all bluetooth traffic to file')
@@ -64,7 +66,7 @@ class Main():
 
             self.uart.start()
             await self.bt.start(args.device, args.addr_type, args.adapter, args.timeout,
-                args.write_uuid, args.read_uuid)
+                args.write_uuid, args.read_uuid, args.mode)
             logging.info('Running main loop!')
             self.main_loop = asyncio.gather(self.bt.send_loop(), self.uart.run_loop())
             await self.main_loop

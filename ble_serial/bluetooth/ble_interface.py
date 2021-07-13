@@ -6,7 +6,7 @@ import logging, asyncio
 from typing import Optional
 
 class BLE_interface():
-    async def start(self, addr_str, addr_type, adapter, timeout, write_uuid, read_uuid,):
+    async def start(self, addr_str, addr_type, adapter, timeout, write_uuid, read_uuid, mode):
         self._send_queue = asyncio.Queue()
 
         # address_type used only in Windows .NET currently
@@ -17,10 +17,19 @@ class BLE_interface():
         await self.dev.connect()
         logging.info(f'Device {self.dev.address} connected')
 
-        self.write_char = self.find_char(write_uuid, ['write', 'write-without-response'])
-        self.read_char = self.find_char(read_uuid, ['notify'])
+        self.read_enabled = 'r' in mode
+        self.write_enabled = 'w' in mode
 
-        await self.dev.start_notify(self.read_char, self.handle_notify)
+        if self.write_enabled:
+            self.write_char = self.find_char(write_uuid, ['write', 'write-without-response'])
+        else:
+            logging.info('Writing disabled, skipping write UUID detection')
+        
+        if self.read_enabled:
+            self.read_char = self.find_char(read_uuid, ['notify'])
+            await self.dev.start_notify(self.read_char, self.handle_notify)
+        else:
+            logging.info('Reading disabled, skipping read UUID detection')
 
     def find_char(self, uuid: Optional[str], req_props: [str]) -> BleakGATTCharacteristic:
         name = req_props[0]
@@ -68,6 +77,9 @@ class BLE_interface():
             data = await self._send_queue.get()
             if data == None:
                 break # Let future end on shutdown
+            if not self.write_enabled:
+                logging.warning(f'Got unexpected write data: {data}')
+                continue
             logging.debug(f'Sending {data}')
             await self.dev.write_gatt_char(self.write_char, data)
 
@@ -87,6 +99,9 @@ class BLE_interface():
 
     def handle_notify(self, handle: int, data: bytes):
         logging.debug(f'Received notify from {handle}: {data}')
+        if not self.read_enabled:
+            logging.warning(f'Read unexpected data, dropping: {data}')
+            return
         self._cb(data)
 
     def handle_disconnect(self, client: BleakClient):
