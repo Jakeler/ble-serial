@@ -80,7 +80,7 @@ class BLE_interface():
             if data == None:
                 break # Let future end on shutdown
             if not self.write_enabled:
-                logging.warning(f'Got unexpected write data: {data}')
+                logging.warning(f'Ignoring unexpected write data: {data}')
                 continue
             logging.debug(f'Sending {data}')
             await self.dev.write_gatt_char(self.write_char, data)
