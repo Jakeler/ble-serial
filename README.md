@@ -190,13 +190,16 @@ optional arguments:
                         BLE host adapter number to use (default: hci0)
   -m MTU, --mtu MTU     Max. bluetooth packet data size in bytes used for sending (default: 20)
   -w WRITE_UUID, --write-uuid WRITE_UUID
-                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out (default: None)
+                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out
+                        (default: None)
   -r READ_UUID, --read-uuid READ_UUID
                         The GATT characteristic to subscribe to notifications to read the serial data (default: None)
+  --permit {ro,rw,wo}   Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo)
+                        (default: rw)
   -l FILENAME, --log FILENAME
                         Enable optional logging of all bluetooth traffic to file (default: None)
-  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l (default: False)
-
+  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l
+                        (default: False)
 ```
 Only the device address is always required:
 ```console
