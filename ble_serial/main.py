@@ -65,8 +65,8 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.start(args.device, args.addr_type, args.adapter, args.timeout,
-                args.write_uuid, args.read_uuid, args.mode)
+            await self.bt.connect(args.device, args.addr_type, args.adapter, args.timeout)
+            await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
             logging.info('Running main loop!')
             self.main_loop = asyncio.gather(self.bt.send_loop(), self.uart.run_loop())
             await self.main_loop
