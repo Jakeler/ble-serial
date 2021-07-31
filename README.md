@@ -150,7 +150,8 @@ Completed deep scan of 20:91:48:4C:4C:54
 Now the interesting parts are the characteristics, grouped into services. The ones belows the first service starting with `00002` are not interesting in this case, because they are standard values (for example the device name), if you want to know more look at [this list](https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026#file-allgattcharacteristics-java-L57).
 
 After the UUID, handle and type the permissions are listed in []. We are searching for a characteristic that allows writing = sending to the device, the only candidate in here is `0000ffe1-0000-1000-8000-00805f9b34fb` (spoiler: a HM-11 module again).
-Same procedure with the read characteristic, this modules handles read and write through the same characteristic.
+Same procedure with the read characteristic, here you have to actually look for `notify` or `indicate`, that is how the receiving side is informed about new data in BLE.
+This module handles both directions through the same characteristic.
 
 Some other chips split it up, for example (this time on macOS with device ID):
 ```console
