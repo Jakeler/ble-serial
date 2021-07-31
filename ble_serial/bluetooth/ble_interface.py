@@ -28,7 +28,7 @@ class BLE_interface():
             logging.info('Writing disabled, skipping write UUID detection')
         
         if self.read_enabled:
-            self.read_char = self.find_char(read_uuid, ['notify'])
+            self.read_char = self.find_char(read_uuid, ['notify', 'indicate'])
             await self.dev.start_notify(self.read_char, self.handle_notify)
         else:
             logging.info('Reading disabled, skipping read UUID detection')
