@@ -229,7 +229,17 @@ Same for reading with `-r`/`--read-uuid`, for example:
 $ ble-serial -d 20:91:48:4c:4c:54 -r 0000ffe1-0000-1000-8000-00805f9b34fb
 ```
 
-Also there is an option to log all traffic on the link to a text file:
+Per default it always tries to setup reading and writing and searches for both characteristics. If none of your characteristics are in the builtin list then you have to specify both `-w` and `-r`. 
+
+Otherwise if your device has only a read/notify characteristic or you want to intentionally prevent writing then you can use `--permit`:
+```
+$ ble-serial -d 20:91:48:4c:4c:54 -r 0000ffe1-0000-1000-8000-00805f9b34fb --permit ro
+```
+Here `-r` is enough for `ro` = read only. 
+This works also the other way around with `wo` = write only.
+
+### Logging
+There is an option to log all traffic on the link to a text file:
 ```console
 $ ble-serial -d 20:91:48:4c:4c:54 -l demo.txt
 ...
