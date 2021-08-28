@@ -49,8 +49,13 @@ class BLE_interface():
                 if c.uuid in uuid_candidates:
                     results.append(c)
 
-        assert len(results) > 0, \
-            f"No characteristic with specified UUID {uuid_candidates} found!"
+        if uuid:
+            assert len(results) > 0, \
+                f"No characteristic with specified {name} UUID {uuid} found!"
+        else:
+            assert len(results) > 0, \
+                f"""No characteristic in builtin {name} list {uuid_candidates} found!
+                    Please specify one with {'-w/--write-uuid' if name == 'write' else '-r/--read-uuid'}, see also --help"""
 
         res_str = '\n'.join(f'\t{c} {c.properties}' for c in results)
         logging.debug(f'Characteristic candidates for {name}: \n{res_str}')
