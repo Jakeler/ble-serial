@@ -1,7 +1,8 @@
 import logging, coloredlogs
 
-def setup_logger(args):
-    logging.getLogger('bleak').level = logging.INFO
+def setup_logger(verbosity: int):
+    bleak_logger = logging.getLogger('bleak')
+    bleak_logger.level = logging.DEBUG if verbosity > 1 else logging.INFO
 
     level_colors = {
         'critical': {'bold': True, 'color': 'red'},
@@ -17,7 +18,7 @@ def setup_logger(args):
         'filename': {'color': 'white', 'faint': True},
     }
     coloredlogs.install(
-        level=logging.DEBUG if args.verbose else logging.INFO,
+        level=logging.DEBUG if verbosity > 0 else logging.INFO,
         fmt='%(asctime)s.%(msecs)03d | %(levelname)s | %(filename)s: %(message)s',
         datefmt='%H:%M:%S',
         level_styles=level_colors,

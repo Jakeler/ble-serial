@@ -20,8 +20,8 @@ class Main():
         parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
             description='Create virtual serial ports from BLE devices.')
 
-        parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
-            help='Increase verbosity to log all data going through')
+        parser.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
+            help='Increase verbosity, can be specified multiple times for connection/DBus debugging')
         parser.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
             help=DEFAULT_PORT_MSG)
 
@@ -99,5 +99,5 @@ class Main():
 def launch():
     m = Main()
     m.parse_args()
-    setup_logger(m.args)
+    setup_logger(m.args.verbose)
     m.start()
