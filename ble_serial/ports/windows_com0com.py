@@ -25,10 +25,11 @@ class COM(ISerial):
         pool = ThreadPoolExecutor(max_workers=2)
         rx = self.loop.run_in_executor(pool, self._run_rx)
         tx = self.loop.run_in_executor(pool, self._run_tx)
-        await asyncio.gather(rx, tx)
+        main = self._run_main_thread()
+        await asyncio.gather(main, rx, tx)
 
     def _run_tx(self):
-        while self.alive and self.serial.is_open:
+        while self.alive:
             try:
                 data = self.tx_queue.get(block=True, timeout=3)
                 logging.debug(f'Write: {data}')
@@ -41,7 +42,7 @@ class COM(ISerial):
     def _run_rx(self):
         # based on ReaderThread(threading.Thread) from:
         # https://github.com/pyserial/pyserial/blob/master/serial/threaded/__init__.py
-        while self.alive and self.serial.is_open:
+        while self.alive:
             data = self.serial.read(1) # request 1 to block
             n = min(self.mtu - 1, self.serial.in_waiting) # read the remaning, can be 0
             data += self.serial.read(n)
@@ -49,6 +50,15 @@ class COM(ISerial):
             self.loop.call_soon_threadsafe(self._cb, data) # needed as asyncio.Queue is not thread safe
 
         logging.debug(f'RX loop ended, alive={self.alive} open={self.serial.is_open}')
+
+    async def _run_main_thread(self):
+        # Dummy work in main thread, it has to run to detect signals (e.g. ctrl-C)
+        # https://stackoverflow.com/a/29237343
+        # we can also use it to check if the serial is still open, instead of doing that in every thread
+        while self.alive:
+            self.alive = False if not self.serial.is_open else self.alive
+            await asyncio.sleep(0.5)
+
 
     def stop_loop(self):
         self.alive = False
