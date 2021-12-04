@@ -25,7 +25,7 @@ class COM(ISerial):
         pool = ThreadPoolExecutor(max_workers=2)
         rx = self.loop.run_in_executor(pool, self._run_rx)
         tx = self.loop.run_in_executor(pool, self._run_tx)
-        return asyncio.gather(rx, tx)
+        await asyncio.gather(rx, tx)
 
     def _run_tx(self):
         while self.alive and self.serial.is_open:
@@ -57,4 +57,5 @@ class COM(ISerial):
     def remove(self):
         if hasattr(self, 'serial'):
             self.serial.close()
+            self.stop_loop()
 
