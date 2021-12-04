@@ -67,9 +67,15 @@ class Main():
             self.uart.start()
             await self.bt.connect(args.device, args.addr_type, args.adapter, args.timeout)
             await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
+
             logging.info('Running main loop!')
-            self.main_loop = asyncio.gather(self.bt.send_loop(), self.uart.run_loop())
-            await self.main_loop
+            main_tasks = {
+                asyncio.create_task(self.bt.send_loop(), name='Bluetooth'),
+                asyncio.create_task(self.uart.run_loop(), name='UART')
+            }
+            done, pending = await asyncio.wait(main_tasks, return_when=asyncio.FIRST_COMPLETED)
+            logging.debug(f'Completed Tasks: {[t._coro for t in done]}')
+            logging.debug(f'Pending Tasks: {[t._coro for t in pending]}')
 
         except BleakError as e:
             logging.error(f'Bluetooth connection failed: {e}')
