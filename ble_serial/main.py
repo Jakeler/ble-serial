@@ -70,11 +70,11 @@ class Main():
 
             logging.info('Running main loop!')
             main_tasks = {
-                asyncio.create_task(self.bt.send_loop(), name='Bluetooth'),
-                asyncio.create_task(self.uart.run_loop(), name='UART')
+                asyncio.create_task(self.bt.send_loop()),
+                asyncio.create_task(self.uart.run_loop())
             }
             done, pending = await asyncio.wait(main_tasks, return_when=asyncio.FIRST_COMPLETED)
-            logging.debug(f'Completed Tasks: {[t._coro for t in done]}')
+            logging.debug(f'Completed Tasks: {[(t._coro, t.result()) for t in done]}')
             logging.debug(f'Pending Tasks: {[t._coro for t in pending]}')
 
         except BleakError as e:
@@ -83,7 +83,7 @@ class Main():
         # except KeyboardInterrupt:
         #     logging.info('Keyboard interrupt received')
         except Exception as e:
-            logging.error(f'Unexpected Error: {e}')
+            logging.error(f'Unexpected Error: {repr(e)}')
         finally:
             logging.warning('Shutdown initiated')
             if hasattr(self, 'uart'):
