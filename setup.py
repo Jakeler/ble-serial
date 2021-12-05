@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as fr:
 
 setuptools.setup(
     name="ble-serial",
-    version="2.4.1",
+    version="2.5.0",
     author="Jake",
     author_email="ble-serial-pypi@ja-ke.tech",
     description="A package to connect BLE serial adapters",
@@ -37,6 +37,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     python_requires='>=3.7',
     install_requires=REQUIRES,
