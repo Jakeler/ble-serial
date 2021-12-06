@@ -1,7 +1,7 @@
 import logging, coloredlogs
 
 def setup_logger(verbosity: int):
-    bleak_logger = logging.getLogger('bleak')
+    bleak_logger = logging.getLogger('bless')
     bleak_logger.level = logging.DEBUG if verbosity > 1 else logging.INFO
 
     level_colors = {
