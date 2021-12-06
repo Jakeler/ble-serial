@@ -14,10 +14,10 @@ class BLE_server():
         self.server.write_request_func = self.handle_incoming_write
 
     async def start(self, addr_str: str, addr_type: str, adapter: str, timeout: float):
-        logging.info(f'Trying to start with {addr_str}')
+        # logging.info(f'Trying to start with {addr_str}')
         #TODO: obtain adapter address
         success = await self.server.start(timeout=timeout)
-        logging.info(f'Server startup {"successful" if success else "failed!"}')
+        logging.info(f'Server startup {"failed!" if success == False else "successful"}')
 
 
     async def setup_chars(self, write_uuid: str, read_uuid: str, mode: str):
@@ -27,7 +27,7 @@ class BLE_server():
         service_uuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
         await self.server.add_new_service(service_uuid)
         self.service = self.server.get_service(service_uuid)
-        logging.debug(self.service)
+        logging.info(f'Service {str(self.service)}')
 
         # TODO: setup depending on mode
         # if self.write_enabled:
@@ -48,7 +48,7 @@ class BLE_server():
             char_flags, None, permissions)
 
         self.write_char = self.server.get_characteristic(write_uuid)
-        logging.debug(self.write_char)
+        logging.info(f'Write characteristic: {str(self.write_char)}')
 
         read_uuid = "0000ffe2-0000-1000-8000-00805f9b34fb"
         char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
@@ -57,7 +57,7 @@ class BLE_server():
             char_flags, None, permissions)
 
         self.read_char = self.server.get_characteristic(read_uuid)
-        logging.debug(self.read_char)
+        logging.info(f'Read characteristic: {str(self.read_char)}')
 
         self.data_read_done.set()
 
