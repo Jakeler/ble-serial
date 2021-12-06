@@ -41,7 +41,7 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
+            await self.bt.setup_chars(args.service_uuid, args.write_uuid, args.read_uuid, args.mode)
             await self.bt.start(args.device, args.addr_type, args.adapter, args.timeout)
 
             logging.info('Running main loop!')

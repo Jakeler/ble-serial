@@ -20,11 +20,11 @@ class BLE_server():
         logging.info(f'Server startup {"failed!" if success == False else "successful"}')
 
 
-    async def setup_chars(self, write_uuid: str, read_uuid: str, mode: str):
+    async def setup_chars(self, service_uuid: str, write_uuid: str, read_uuid: str, mode: str):
         self.read_enabled = 'r' in mode
         self.write_enabled = 'w' in mode
 
-        service_uuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
+        # service_uuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
         await self.server.add_new_service(service_uuid)
         self.service = self.server.get_service(service_uuid)
         logging.info(f'Service {str(self.service)}')
@@ -41,7 +41,7 @@ class BLE_server():
         # else:
         #     logging.info('Reading disabled, skipping read UUID detection')
 
-        write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
+        # write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
         char_flags = GATTCharacteristicProperties.write | GATTCharacteristicProperties.write_without_response
         permissions =  GATTAttributePermissions.readable | GATTAttributePermissions.writeable
         await self.server.add_new_characteristic(service_uuid, write_uuid,
@@ -50,7 +50,7 @@ class BLE_server():
         self.write_char = self.server.get_characteristic(write_uuid)
         logging.info(f'Write characteristic: {str(self.write_char)}')
 
-        read_uuid = "0000ffe2-0000-1000-8000-00805f9b34fb"
+        # read_uuid = "0000ffe2-0000-1000-8000-00805f9b34fb"
         char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         permissions =  GATTAttributePermissions.readable | GATTAttributePermissions.writeable
         await self.server.add_new_characteristic(service_uuid, read_uuid,

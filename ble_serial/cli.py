@@ -30,6 +30,9 @@ def parse_args():
         help='The GATT characteristic to subscribe to notifications to read the serial data')
     dev_group.add_argument('--permit', dest='mode', required=False, default='rw', choices=['ro', 'rw', 'wo'],
         help='Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo)')
+    
+    dev_group.add_argument('-g', '--role', dest='gap_role', required=False, default='client', choices=['server', 'client'],
+        help='Operate as BLE role: client (BLE central), server (BLE peripheral)')
 
     log_group = parser.add_argument_group('logging options')
     log_group.add_argument('-l', '--log', dest='filename', required=False,
