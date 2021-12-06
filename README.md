@@ -6,7 +6,7 @@ It fulfills the same purpose as `rfcomm bind` for the old Bluetooth 2.0, creatin
 On Windows it provides a `COM` port, similar to the Microsoft "Standard Serial over Bluetooth" (a driver which exists since Windows XP and unsurprisingly also does not support BLE standards).
 
 ## Installation
-### Standard (via Python Package Index)
+### Standard (via [Python Package Index](https://pypi.org/project/ble-serial/))
 The software is written completely in Python and packaged as module, so it can be easily installed with pip:
 ```console
 $ pip install ble-serial
