@@ -33,6 +33,9 @@ def parse_args():
     dev_group.add_argument('--write-with-response', dest='write_with_response', required=False, action='store_true',
         help='Wait for a response from the remote device before sending more. Better data integrity, higher latency and less througput')
 
+    dev_group.add_argument('-g', '--role', dest='gap_role', required=False, default='client', choices=['server', 'client'],
+        help='Operate as BLE role: client (BLE central), server (BLE peripheral)')
+
     log_group = parser.add_argument_group('logging options')
     log_group.add_argument('-l', '--log', dest='filename', required=False,
         help='Enable optional logging of all bluetooth traffic to file')
