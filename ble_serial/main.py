@@ -25,8 +25,11 @@ class Main():
         parser.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
             help=DEFAULT_PORT_MSG)
 
-        parser.add_argument('-d', '--dev', dest='device', required=True,
+        parser.add_argument('-d', '--dev', dest='device', required=False,
             help='BLE device address to connect (hex format, can be separated by colons)')
+        parser.add_argument('-s', '--service-uuid', dest='service_uuid', required=False,
+            help='The service used for scanning of potential devices')
+
         parser.add_argument('-t', '--timeout', dest='timeout', required=False, default=5.0, type=float, metavar='SEC',
             help='BLE connect/discover timeout in seconds')
         parser.add_argument('-a', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
@@ -35,6 +38,7 @@ class Main():
             help='BLE host adapter number to use')
         parser.add_argument('-m', '--mtu', dest='mtu', required=False, default=20, type=int,
             help='Max. bluetooth packet data size in bytes used for sending')
+
         parser.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
             help='The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out')
         parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
@@ -48,6 +52,9 @@ class Main():
             help='Log data as raw binary, disable transformation to hex. Works only in combination with -l')
 
         self.args = parser.parse_args()
+
+        if not self.args.device and not self.args.service_uuid:
+            parser.error('at least one of -d/--dev and -s/--service-uuid required')
 
     async def _run(self):
         args = self.args
@@ -65,7 +72,7 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.connect(args.device, args.addr_type, args.adapter, args.timeout)
+            await self.bt.connect(args.device, args.addr_type, args.adapter, args.timeout, args.service_uuid)
             await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
 
             logging.info('Running main loop!')

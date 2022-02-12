@@ -1,4 +1,4 @@
-from bleak import BleakClient
+from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.exc import BleakError
 from ble_serial.bluetooth.constants import ble_chars
@@ -9,12 +9,26 @@ class BLE_interface():
     def __init__(self):
         self._send_queue = asyncio.Queue()
 
-    async def connect(self, addr_str: str, addr_type: str, adapter: str, timeout: float):
+    async def connect(self, addr_str: str, addr_type: str, adapter: str, timeout: float, service: str):
+        
+        # TODO move args gen to separate function
+        scan_args = dict(adapter=adapter, address_type=addr_type)
+        if service:
+            scan_args['service_uuids'] = [service]
+
+        if addr_str:
+            device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **scan_args)
+        else:
+            logging.warning(f'Picking first device with service {service}, '
+                'consider passing a specific device address, especially if there could be multiple devices')
+            device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **scan_args)
+
         # address_type used only in Windows .NET currently
-        self.dev = BleakClient(addr_str, adapter=adapter, address_type=addr_type, timeout=timeout)
+        # TODO check if passing adapter from from scan data works
+        self.dev = BleakClient(device, timeout=timeout)
         self.dev.set_disconnected_callback(self.handle_disconnect)
 
-        logging.info(f'Trying to connect with {addr_str}')
+        logging.info(f'Trying to connect with {device}')
         await self.dev.connect()
         logging.info(f'Device {self.dev.address} connected')
 
