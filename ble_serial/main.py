@@ -66,7 +66,7 @@ class Main():
         loop.set_exception_handler(self.excp_handler)
         try:
             self.uart = UART(args.port, loop, args.mtu)
-            self.bt = BLE_interface()
+            self.bt = BLE_interface(args.adapter, args.addr_type, args.service_uuid)
             if args.filename:
                 self.log = FS_log(args.filename, args.binlog)
                 self.bt.set_receiver(self.log.middleware(Direction.BLE_IN, self.uart.queue_write))
@@ -76,7 +76,7 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.connect(args.device, args.addr_type, args.adapter, args.timeout, args.service_uuid)
+            await self.bt.connect(args.device, args.timeout)
             await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
 
             logging.info('Running main loop!')

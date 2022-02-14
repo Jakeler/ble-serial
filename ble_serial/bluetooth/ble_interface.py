@@ -6,22 +6,20 @@ import logging, asyncio
 from typing import Optional
 
 class BLE_interface():
-    def __init__(self):
+    def __init__(self, adapter: str, addr_type: str, service: str):
         self._send_queue = asyncio.Queue()
 
-    async def connect(self, addr_str: str, addr_type: str, adapter: str, timeout: float, service: str):
-        
-        # TODO move args gen to separate function
-        scan_args = dict(adapter=adapter, address_type=addr_type)
+        self.scan_args = dict(adapter=adapter, address_type=addr_type)
         if service:
-            scan_args['service_uuids'] = [service]
+            self.scan_args['service_uuids'] = [service]
 
+    async def connect(self, addr_str: str, timeout: float):
         if addr_str:
-            device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **scan_args)
+            device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **self.scan_args)
         else:
-            logging.warning(f'Picking first device with service {service}, '
+            logging.warning(f'Picking first device with matching service, '
                 'consider passing a specific device address, especially if there could be multiple devices')
-            device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **scan_args)
+            device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **self.scan_args)
 
         # address_type used only in Windows .NET currently
         # TODO check if passing adapter from from scan data works
