@@ -38,7 +38,7 @@ class Main():
         dev_group.add_argument('-d', '--dev', dest='device', required=False,
             help='BLE device address to connect (hex format, can be separated by colons)')
         dev_group.add_argument('-a', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
-            help='BLE address type, either public or random')
+            help='BLE address type, only relevant on Windows, ignored otherwise')
         dev_group.add_argument('-s', '--service-uuid', dest='service_uuid', required=False,
             help='The service used for scanning of potential devices')
             
@@ -66,7 +66,7 @@ class Main():
         loop.set_exception_handler(self.excp_handler)
         try:
             self.uart = UART(args.port, loop, args.mtu)
-            self.bt = BLE_interface(args.adapter, args.addr_type, args.service_uuid)
+            self.bt = BLE_interface(args.adapter, args.service_uuid)
             if args.filename:
                 self.log = FS_log(args.filename, args.binlog)
                 self.bt.set_receiver(self.log.middleware(Direction.BLE_IN, self.uart.queue_write))
@@ -76,7 +76,7 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.connect(args.device, args.timeout)
+            await self.bt.connect(args.device, args.addr_type, args.timeout)
             await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
 
             logging.info('Running main loop!')
