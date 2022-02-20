@@ -25,29 +25,40 @@ class Main():
         parser.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
             help=DEFAULT_PORT_MSG)
 
-        parser.add_argument('-d', '--dev', dest='device', required=True,
-            help='BLE device address to connect (hex format, can be separated by colons)')
-        parser.add_argument('-t', '--timeout', dest='timeout', required=False, default=5.0, type=float, metavar='SEC',
+
+        con_group = parser.add_argument_group('connection parameters')
+        con_group.add_argument('-t', '--timeout', dest='timeout', required=False, default=5.0, type=float, metavar='SEC',
             help='BLE connect/discover timeout in seconds')
-        parser.add_argument('-a', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
-            help='BLE address type, either public or random')
-        parser.add_argument('-i', '--interface', dest='adapter', required=False, default='hci0',
+        con_group.add_argument('-i', '--interface', dest='adapter', required=False, default='hci0',
             help='BLE host adapter number to use')
-        parser.add_argument('-m', '--mtu', dest='mtu', required=False, default=20, type=int,
+        con_group.add_argument('-m', '--mtu', dest='mtu', required=False, default=20, type=int,
             help='Max. bluetooth packet data size in bytes used for sending')
-        parser.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
+
+        dev_group = parser.add_argument_group('device parameters')
+        dev_group.add_argument('-d', '--dev', dest='device', required=False,
+            help='BLE device address to connect (hex format, can be separated by colons)')
+        dev_group.add_argument('-a', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
+            help='BLE address type, only relevant on Windows, ignored otherwise')
+        dev_group.add_argument('-s', '--service-uuid', dest='service_uuid', required=False,
+            help='The service used for scanning of potential devices')
+            
+        dev_group.add_argument('-w', '--write-uuid', dest='write_uuid', required=False,
             help='The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out')
-        parser.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
+        dev_group.add_argument('-r', '--read-uuid', dest='read_uuid', required=False,
             help='The GATT characteristic to subscribe to notifications to read the serial data')
-        parser.add_argument('--permit', dest='mode', required=False, default='rw', choices=['ro', 'rw', 'wo'],
+        dev_group.add_argument('--permit', dest='mode', required=False, default='rw', choices=['ro', 'rw', 'wo'],
             help='Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo)')
 
-        parser.add_argument('-l', '--log', dest='filename', required=False,
+        log_group = parser.add_argument_group('logging options')
+        log_group.add_argument('-l', '--log', dest='filename', required=False,
             help='Enable optional logging of all bluetooth traffic to file')
-        parser.add_argument('-b', '--binary', dest='binlog', required=False, action='store_true',
+        log_group.add_argument('-b', '--binary', dest='binlog', required=False, action='store_true',
             help='Log data as raw binary, disable transformation to hex. Works only in combination with -l')
 
         self.args = parser.parse_args()
+
+        if not self.args.device and not self.args.service_uuid:
+            parser.error('at least one of -d/--dev and -s/--service-uuid required')
 
     async def _run(self):
         args = self.args
@@ -55,7 +66,7 @@ class Main():
         loop.set_exception_handler(self.excp_handler)
         try:
             self.uart = UART(args.port, loop, args.mtu)
-            self.bt = BLE_interface()
+            self.bt = BLE_interface(args.adapter, args.service_uuid)
             if args.filename:
                 self.log = FS_log(args.filename, args.binlog)
                 self.bt.set_receiver(self.log.middleware(Direction.BLE_IN, self.uart.queue_write))
@@ -65,7 +76,7 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.connect(args.device, args.addr_type, args.adapter, args.timeout)
+            await self.bt.connect(args.device, args.addr_type, args.timeout)
             await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
 
             logging.info('Running main loop!')
