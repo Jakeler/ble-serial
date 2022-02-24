@@ -114,13 +114,16 @@ usage: ble-scan [-h] [-t SEC] [-d ADDR]
 
 Scanner for BLE devices and service/characteristics.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -t SEC, --scan-time SEC
                         Duration of the scan in seconds (default: 5.0)
+  -i ADAPTER, --interface ADAPTER
+                        BLE host adapter number to use (default: hci0)
   -d ADDR, --deep-scan ADDR
-                        Try to connect to device and read out service/characteristic UUIDs 
-                        (default: None)
+                        Try to connect to device and read out service/characteristic UUIDs (default: None)
+  -s SERVICE_UUID, --service-uuid SERVICE_UUID
+                        The service used for scanning of potential devices (default: None)
 ```
 
 On Bluetooth 2.0 there was a "serial port profile", with 4.0 - 5.2 (BLE) there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own UUIDs to implement the features. 
@@ -129,7 +132,7 @@ On Bluetooth 2.0 there was a "serial port profile", with 4.0 - 5.2 (BLE) there i
 '0000ff02-0000-1000-8000-00805f9b34fb', # LithiumBatteryPCB adapter: write
 '0000ffe1-0000-1000-8000-00805f9b34fb', # TI CC245x (HM-10, HM-11)
 ```
-Some usual UUIDs are included in ble-serial, these will be tried automatically if nothing is specified.
+Some usual read/write UUIDs are included in ble-serial, these will be tried automatically if nothing is specified.
 You might skip this part and start directly with the connection.
 
 Otherwise to find the correct UUID, use the deep scan option. It expects a device MAC/ID, connects to it and reads out all services/characteristic/descriptors:
@@ -147,7 +150,7 @@ SERVICE 0000ffe0-0000-1000-8000-00805f9b34fb (Handle: 16): Vendor specific
 
 Completed deep scan of 20:91:48:4C:4C:54
 ```
-Now the interesting parts are the characteristics, grouped into services. The ones belows the first service starting with `00002` are not interesting in this case, because they are standard values (for example the device name), if you want to know more look at [this list](https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026#file-allgattcharacteristics-java-L57).
+Now the interesting parts are the characteristics, grouped into services. The ones belows the first service starting with `00002` are not relevant in this case, because they are standard values (for example the device name), if you want to know more look at [this list](https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026#file-allgattcharacteristics-java-L57).
 
 After the UUID, handle and type the permissions are listed in []. We are searching for a characteristic that allows writing = sending to the device, the only candidate in here is `0000ffe1-0000-1000-8000-00805f9b34fb` (spoiler: a HM-11 module again).
 Same procedure with the read characteristic, here you have to actually look for `notify` or `indicate`, that is how the receiving side is informed about new data in BLE.
@@ -177,39 +180,48 @@ usage: __main__.py [-h] [-v] -d DEVICE [-t {public,random}] [-i ADAPTER] [-m MTU
 
 Create virtual serial ports from BLE devices.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -v, --verbose         Increase verbosity to log all data going through (default: False)
+  -v, --verbose         Increase verbosity, can be specified multiple times for connection/DBus debugging (default: 0)
   -p PORT, --port PORT  Symlink to virtual serial port (default: /tmp/ttyBLE)
-  -d DEVICE, --dev DEVICE
-                        BLE device address to connect (hex format, can be separated by colons) (default: None)
+
+connection parameters:
   -t SEC, --timeout SEC
                         BLE connect/discover timeout in seconds (default: 5.0)
-  -a {public,random}, --address-type {public,random}
-                        BLE address type, either public or random (default: public)
   -i ADAPTER, --interface ADAPTER
                         BLE host adapter number to use (default: hci0)
   -m MTU, --mtu MTU     Max. bluetooth packet data size in bytes used for sending (default: 20)
+
+device parameters:
+  -d DEVICE, --dev DEVICE
+                        BLE device address to connect (hex format, can be separated by colons) (default: None)
+  -a {public,random}, --address-type {public,random}
+                        BLE address type, only relevant on Windows, ignored otherwise (default: public)
+  -s SERVICE_UUID, --service-uuid SERVICE_UUID
+                        The service used for scanning of potential devices (default: None)
   -w WRITE_UUID, --write-uuid WRITE_UUID
-                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out
-                        (default: None)
+                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out (default: None)
   -r READ_UUID, --read-uuid READ_UUID
                         The GATT characteristic to subscribe to notifications to read the serial data (default: None)
-  --permit {ro,rw,wo}   Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo)
-                        (default: rw)
+  --permit {ro,rw,wo}   Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo) (default: rw)
+
+logging options:
   -l FILENAME, --log FILENAME
                         Enable optional logging of all bluetooth traffic to file (default: None)
-  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l
-                        (default: False)
+  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l (default: False)
+
 ```
-Only the device address is always required:
+In any case it needs to know which device to connect, the simple and most reliable way to specify this is by device address/id:
 ```console
 $ ble-serial -d 20:91:48:4c:4c:54
-18:36:09.255 | INFO | linux_pty.py: Slave created on /tmp/ttyBLE -> /dev/pts/7
-18:36:09.255 | INFO | ble_interface.py: Receiver set up
-18:36:09.258 | INFO | ble_interface.py: Trying to connect with 20:91:48:4C:4C:54
-18:36:12.291 | INFO | ble_interface.py: Device 20:91:48:4C:4C:54 connected
-18:36:12.637 | INFO | main.py: Running main loop!
+20:38:31.271 | INFO | linux_pty.py: Slave created on /tmp/ttyBLE -> /dev/pts/5
+20:38:31.271 | INFO | ble_interface.py: Receiver set up
+20:38:31.485 | INFO | ble_interface.py: Trying to connect with 20:91:48:4C:4C:54: UT61E -  JK
+20:38:32.844 | INFO | ble_interface.py: Device 20:91:48:4C:4C:54 connected
+20:38:32.844 | INFO | ble_interface.py: Found write characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
+20:38:32.844 | INFO | ble_interface.py: Found notify characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
+20:38:33.128 | INFO | main.py: Running main loop!
+
 ```
 This log shows a successful start on Linux, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. It uses the same mechanism on macOS, just the path is slightly different, in the format `/dev/ttys000`.
 In addition it automatically creates a symlink to `/tmp/ttyBLE`, so you can easily access it always on the same file, the default can be changed with the `-p`/`--port` option.
@@ -219,7 +231,20 @@ On Windows it uses the port pair created in the setup described above, this does
 Now it is possible to use any serial monitor program, just connect to that port, baud rate etc. does not matter, it will work with any value (settings are ignored, because it is only virtual).
 The software acts as transparent bridge, everything that is sent to that virtual port gets transmitted to the BLE module and comes out of the TX pin there. Same in the other direction, everything that the BLE module receives on the RX pin gets transmitted to the PC and shows up in the virtual serial port. This makes it also possible to add ble module to create a wireless serial connection with existing hard/software.
 
-As mentioned before, the start might fail because the UUID is not in the list, then you can manually specify the correct write characteristic UUID like this:
+Another way to find a device is by service uuid:
+```console
+$ ble-serial -s 0000ffe0-0000-1000-8000-00805f9b34fb
+20:35:41.964 | INFO | linux_pty.py: Slave created on /tmp/ttyBLE -> /dev/pts/5
+20:35:41.964 | INFO | ble_interface.py: Receiver set up
+20:35:41.964 | WARNING | ble_interface.py: Picking first device with matching service, consider passing a specific device address, especially if there could be multiple devices
+20:35:42.308 | INFO | ble_interface.py: Trying to connect with 20:91:48:4C:4C:54: UT61E -  JK
+20:35:43.020 | INFO | ble_interface.py: Device 20:91:48:4C:4C:54 connected
+...
+```
+This has the advantage that you can replace the device/chip without changing anything in the host script, it will automatically pick the first device that provides the service. It is also possible to add both the service and address, then it will only connect if both match.
+On early versions of macOS 12 (Monterey) it is always required to filter with the service uuid, otherwise scanning/connecting won't work.
+
+As mentioned before, the start might fail because the characteristic UUIDs are not in the list, then you can manually specify the correct write UUID like this:
 ```
 $ ble-serial -d 20:91:48:4c:4c:54 -w 0000ffe1-0000-1000-8000-00805f9b34fb
 ```
