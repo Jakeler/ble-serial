@@ -8,10 +8,12 @@ import argparse, asyncio
 async def scan(args):
     print("Started BLE scan\n")
 
+    base_kwargs = dict(adapter=args.adapter, timeout=args.sec)
+
     if args.service_uuid:
-        devices = await BleakScanner.discover(timeout=args.sec, service_uuids=[args.service_uuid])
+        devices = await BleakScanner.discover(**base_kwargs, service_uuids=[args.service_uuid])
     else:
-        devices = await BleakScanner.discover(timeout=args.sec)
+        devices = await BleakScanner.discover(**base_kwargs)
 
     await general_scan(devices)
 
@@ -61,6 +63,8 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-t', '--scan-time', dest='sec', default=5.0, type=float, 
         help='Duration of the scan in seconds')
+    parser.add_argument('-i', '--interface', dest='adapter', required=False, default='hci0',
+        help='BLE host adapter number to use')
     parser.add_argument('-d', '--deep-scan', dest='addr', type=str,
         help='Try to connect to device and read out service/characteristic UUIDs')
     parser.add_argument('-s', '--service-uuid', dest='service_uuid', required=False,
