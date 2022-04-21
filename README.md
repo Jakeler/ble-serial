@@ -61,6 +61,10 @@ optional arguments:
 
 It will request administrator privileges (if it does not already have it) and setup the port in another CMD window:
 ```
+> ble-com-setup.exe
+OK
+
+[New Window]
 Changing into C:/Program Files (x86)/com0com/
 
 > Checking port list for BLE
