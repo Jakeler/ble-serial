@@ -54,12 +54,13 @@ class Main():
             logging.debug(f'Pending Tasks: {[t._coro for t in pending]}')
 
         except BleakError as e:
-            logging.error(f'Bluetooth connection failed: {e}')
+            logging.error(f'Bluetooth connection failed')
+            logging.exception(e)
         ### KeyboardInterrupts are now received on asyncio.run()
         # except KeyboardInterrupt:
         #     logging.info('Keyboard interrupt received')
         except Exception as e:
-            logging.error(f'Unexpected Error: {repr(e)}')
+            logging.exception(e)
         finally:
             logging.warning('Shutdown initiated')
             if hasattr(self, 'uart'):
@@ -80,5 +81,5 @@ class Main():
 
 def launch():
     args = cli.parse_args()
-    setup_logger(args.verbose)
+    setup_logger(args.verbose, args.gap_role)
     Main(args).start()

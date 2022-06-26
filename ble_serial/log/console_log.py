@@ -1,8 +1,15 @@
 import logging, coloredlogs
 
-def setup_logger(verbosity: int):
-    bleak_logger = logging.getLogger('bless')
-    bleak_logger.level = logging.DEBUG if verbosity > 1 else logging.INFO
+def _map_role_to_lib(role: str):
+    return {
+        'client': 'bleak',
+        'server': 'bless'
+    }[role]
+
+def setup_logger(verbosity: int, role: str):
+    ble_lib_name = _map_role_to_lib(role)
+    ble_logger = logging.getLogger(ble_lib_name)
+    ble_logger.level = logging.DEBUG if verbosity > 1 else logging.INFO
 
     level_colors = {
         'critical': {'bold': True, 'color': 'red'},
