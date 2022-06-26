@@ -101,7 +101,7 @@ class BLE_server():
 
     def set_receiver(self, callback):
         self._cb = callback
-        logging.info('Receiver set up')
+        logging.info('Listener set up')
 
     def handle_incoming_write(self, char: BlessGATTCharacteristic, data: bytes):
         logging.debug(f'Received write from {char}: {data}')
