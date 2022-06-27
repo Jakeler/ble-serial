@@ -33,42 +33,35 @@ class BLE_server(BLE_interface):
         self.read_enabled = 'r' in mode
         self.write_enabled = 'w' in mode
 
-        # service_uuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
         await self.server.add_new_service(self.service_uuid)
         self.service = self.server.get_service(self.service_uuid)
         logging.info(f'Service {str(self.service)}')
 
-        # TODO: setup depending on mode
-        # if self.write_enabled:
-        #     self.write_char = self.find_char(self.write_uuid, ['write', 'write-without-response'])
-        # else:
-        #     logging.info('Writing disabled, skipping write UUID detection')
+        if self.write_enabled:
+            # self.write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
+            char_flags = GATTCharacteristicProperties.write | GATTCharacteristicProperties.write_without_response
+            permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
+            await self.server.add_new_characteristic(self.service_uuid, self.write_uuid,
+                char_flags, None, permissions)
+
+            self.write_char = self.server.get_characteristic(self.write_uuid)
+            logging.info(f'Write characteristic: {str(self.write_char)}')
+        else:
+            logging.info('Writing disabled, no characteristic to setup')
         
-        # if self.read_enabled:
-        #     self.read_char = self.find_char(self.read_uuid, ['notify', 'indicate'])
-        #     await self.dev.start_notify(self.read_char, self.handle_notify)
-        # else:
-        #     logging.info('Reading disabled, skipping read UUID detection')
+        if self.read_enabled:
+            char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
+            permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
+            await self.server.add_new_characteristic(self.service_uuid, self.read_uuid,
+                char_flags, None, permissions)
 
-        # self.write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
-        char_flags = GATTCharacteristicProperties.write | GATTCharacteristicProperties.write_without_response
-        permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
-        await self.server.add_new_characteristic(self.service_uuid, self.write_uuid,
-            char_flags, None, permissions)
+            self.read_char = self.server.get_characteristic(self.read_uuid)
+            logging.info(f'Read characteristic: {str(self.read_char)}')
 
-        self.write_char = self.server.get_characteristic(self.write_uuid)
-        logging.info(f'Write characteristic: {str(self.write_char)}')
+            self.data_read_done.set()
+        else:
+            logging.info('Reading disabled, no characteristic to setup')
 
-        # self.read_uuid = "0000ffe2-0000-1000-8000-00805f9b34fb"
-        char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
-        permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
-        await self.server.add_new_characteristic(self.service_uuid, self.read_uuid,
-            char_flags, None, permissions)
-
-        self.read_char = self.server.get_characteristic(self.read_uuid)
-        logging.info(f'Read characteristic: {str(self.read_char)}')
-
-        self.data_read_done.set()
 
     def handle_incoming_read(self, char: BlessGATTCharacteristic) -> bytearray:
         logging.debug('Client read data')
