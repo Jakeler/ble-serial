@@ -2,20 +2,27 @@ from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.exc import BleakError
 from ble_serial.bluetooth.constants import ble_chars
+from ble_serial.bluetooth.interface import BLE_interface
 import logging, asyncio
 from typing import Optional
 
-class BLE_interface():
-    def __init__(self, adapter: str, service: str):
+class BLE_client(BLE_interface):
+    def __init__(self, adapter: str, service_uuid: str, write_uuid: str, read_uuid: str):
         self._send_queue = asyncio.Queue()
 
-        self.scan_args = dict(adapter=adapter)
-        if service:
-            self.scan_args['service_uuids'] = [service]
+        self.adapter = adapter
+        self.service_uuid = service_uuid
+        self.write_uuid = write_uuid
+        self.read_uuid = read_uuid
+
 
     async def connect(self, addr_str: str, addr_type: str, timeout: float):
+        scan_args = dict(adapter=self.adapter)
+        if self.service_uuid:
+            self.scan_args['service_uuids'] = [self.service_uuid]
+
         if addr_str:
-            device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **self.scan_args)
+            device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **scan_args)
         else:
             logging.warning(f'Picking first device with matching service, '
                 'consider passing a specific device address, especially if there could be multiple devices')
@@ -31,17 +38,17 @@ class BLE_interface():
         await self.dev.connect()
         logging.info(f'Device {self.dev.address} connected')
 
-    async def setup_chars(self, write_uuid: str, read_uuid: str, mode: str):
+    async def setup_chars(self, mode: str):
         self.read_enabled = 'r' in mode
         self.write_enabled = 'w' in mode
 
         if self.write_enabled:
-            self.write_char = self.find_char(write_uuid, ['write', 'write-without-response'])
+            self.write_char = self.find_char(self.write_uuid, ['write', 'write-without-response'])
         else:
             logging.info('Writing disabled, skipping write UUID detection')
         
         if self.read_enabled:
-            self.read_char = self.find_char(read_uuid, ['notify', 'indicate'])
+            self.read_char = self.find_char(self.read_uuid, ['notify', 'indicate'])
             await self.dev.start_notify(self.read_char, self.handle_notify)
         else:
             logging.info('Reading disabled, skipping read UUID detection')

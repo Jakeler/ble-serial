@@ -1,62 +1,71 @@
 from bless import BlessServer, BlessGATTCharacteristic
 from bless import GATTAttributePermissions, GATTCharacteristicProperties
-
-import logging, asyncio
+from ble_serial.bluetooth.interface import BLE_interface
+import os, logging, asyncio
 from typing import Optional
 
-class BLE_server():
-    def __init__(self):
+class BLE_server(BLE_interface):
+    def __init__(self, adapter: str, service_uuid: str, write_uuid: str, read_uuid: str):
         self._send_queue = asyncio.Queue()
         self.data_read_done = asyncio.Event()
 
-        self.server = BlessServer(name='BLE Serial Server') # loop=asyncio.get_event_loop())
+        self.adapter = adapter # unused / not implemented in bless
+        self.service_uuid = service_uuid
+        self.write_uuid = write_uuid
+        self.read_uuid = read_uuid
+        
+        # Workaround for bluez not sending constant names, PID always changes
+        local_name = f'BLE Serial Server {os.getpid()}'
+        logging.debug(f'Name/ID: {local_name}')
+
+        self.server = BlessServer(name=local_name) # loop=asyncio.get_event_loop())
         self.server.read_request_func = self.handle_incoming_read
         self.server.write_request_func = self.handle_incoming_write
 
-    async def start(self, addr_str: str, addr_type: str, adapter: str, timeout: float):
+    async def start(self, timeout: float):
         # logging.info(f'Trying to start with {addr_str}')
         #TODO: obtain adapter address
         success = await self.server.start(timeout=timeout)
         logging.info(f'Server startup {"failed!" if success == False else "successful"}')
 
 
-    async def setup_chars(self, service_uuid: str, write_uuid: str, read_uuid: str, mode: str):
+    async def setup_chars(self, mode: str):
         self.read_enabled = 'r' in mode
         self.write_enabled = 'w' in mode
 
         # service_uuid = "0000ffe0-0000-1000-8000-00805f9b34fb"
-        await self.server.add_new_service(service_uuid)
-        self.service = self.server.get_service(service_uuid)
+        await self.server.add_new_service(self.service_uuid)
+        self.service = self.server.get_service(self.service_uuid)
         logging.info(f'Service {str(self.service)}')
 
         # TODO: setup depending on mode
         # if self.write_enabled:
-        #     self.write_char = self.find_char(write_uuid, ['write', 'write-without-response'])
+        #     self.write_char = self.find_char(self.write_uuid, ['write', 'write-without-response'])
         # else:
         #     logging.info('Writing disabled, skipping write UUID detection')
         
         # if self.read_enabled:
-        #     self.read_char = self.find_char(read_uuid, ['notify', 'indicate'])
+        #     self.read_char = self.find_char(self.read_uuid, ['notify', 'indicate'])
         #     await self.dev.start_notify(self.read_char, self.handle_notify)
         # else:
         #     logging.info('Reading disabled, skipping read UUID detection')
 
-        # write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
+        # self.write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
         char_flags = GATTCharacteristicProperties.write | GATTCharacteristicProperties.write_without_response
-        permissions =  GATTAttributePermissions.readable | GATTAttributePermissions.writeable
-        await self.server.add_new_characteristic(service_uuid, write_uuid,
+        permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
+        await self.server.add_new_characteristic(self.service_uuid, self.write_uuid,
             char_flags, None, permissions)
 
-        self.write_char = self.server.get_characteristic(write_uuid)
+        self.write_char = self.server.get_characteristic(self.write_uuid)
         logging.info(f'Write characteristic: {str(self.write_char)}')
 
-        # read_uuid = "0000ffe2-0000-1000-8000-00805f9b34fb"
+        # self.read_uuid = "0000ffe2-0000-1000-8000-00805f9b34fb"
         char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
-        permissions =  GATTAttributePermissions.readable | GATTAttributePermissions.writeable
-        await self.server.add_new_characteristic(service_uuid, read_uuid,
+        permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
+        await self.server.add_new_characteristic(self.service_uuid, self.read_uuid,
             char_flags, None, permissions)
 
-        self.read_char = self.server.get_characteristic(read_uuid)
+        self.read_char = self.server.get_characteristic(self.read_uuid)
         logging.info(f'Read characteristic: {str(self.read_char)}')
 
         self.data_read_done.set()
