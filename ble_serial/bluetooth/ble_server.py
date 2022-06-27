@@ -1,6 +1,7 @@
 from bless import BlessServer, BlessGATTCharacteristic
 from bless import GATTAttributePermissions, GATTCharacteristicProperties
 from ble_serial.bluetooth.interface import BLE_interface
+from ble_serial.bluetooth.uuid_helpers import check_fill_empty
 import os, logging, asyncio
 from typing import Optional
 
@@ -11,8 +12,8 @@ class BLE_server(BLE_interface):
 
         self.adapter = adapter # unused / not implemented in bless
         self.service_uuid = service_uuid
-        self.write_uuid = write_uuid
-        self.read_uuid = read_uuid
+        self.write_uuid = check_fill_empty(service_uuid, write_uuid, 'write')
+        self.read_uuid = check_fill_empty(service_uuid, read_uuid, 'read')
         
         # Workaround for bluez not sending constant names, PID always changes
         local_name = f'BLE Serial Server {os.getpid()}'
