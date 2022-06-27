@@ -3,7 +3,7 @@ import asyncio
 from bleak.exc import BleakError
 from ble_serial import platform_uart as UART
 from ble_serial.ports.tcp_socket import TCP_Socket
-from ble_serial.bluetooth.ble_server import BLE_server
+from ble_serial.bluetooth.ble_client import BLE_interface
 from ble_serial.log.fs_log import FS_log, Direction
 from ble_serial.log.console_log import setup_logger
 from ble_serial import cli
@@ -11,6 +11,12 @@ from ble_serial import cli
 class Main():
     def __init__(self, args: cli.Namespace):
         self.args = args
+
+        if args.gap_role == 'client':
+            from ble_serial.bluetooth.ble_client import BLE_client as BLE
+        elif args.gap_role == 'server':
+            from ble_serial.bluetooth.ble_server import BLE_server as BLE
+        self.BLE_class = BLE
 
     def start(self):
         try:
@@ -31,7 +37,8 @@ class Main():
             else:
                 self.uart = UART(args.port, loop, args.mtu)
 
-            self.bt = BLE_server()
+            self.bt = self.BLE_class(args.adapter, args.service_uuid,
+                args.write_uuid, args.read_uuid)
 
             if args.filename:
                 self.log = FS_log(args.filename, args.binlog)
@@ -42,8 +49,13 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.setup_chars(args.service_uuid, args.write_uuid, args.read_uuid, args.mode, args.write_with_response)
-            await self.bt.start(args.device, args.addr_type, args.adapter, args.timeout)
+            
+            if args.gap_role == 'client':
+                await self.bt.connect(args.device, args.addr_type, args.timeout)
+                await self.bt.setup_chars(args.mode, args.write_with_response)
+            elif args.gap_role == 'server':
+                await self.bt.setup_chars(args.mode)
+                await self.bt.start(args.timeout)
 
             logging.info('Running main loop!')
             main_tasks = {
