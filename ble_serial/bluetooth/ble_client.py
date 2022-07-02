@@ -19,14 +19,14 @@ class BLE_client(BLE_interface):
     async def connect(self, addr_str: str, addr_type: str, timeout: float):
         scan_args = dict(adapter=self.adapter)
         if self.service_uuid:
-            self.scan_args['service_uuids'] = [self.service_uuid]
+            scan_args['service_uuids'] = [self.service_uuid]
 
         if addr_str:
             device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **scan_args)
         else:
             logging.warning(f'Picking first device with matching service, '
                 'consider passing a specific device address, especially if there could be multiple devices')
-            device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **self.scan_args)
+            device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **scan_args)
 
         assert device, f'No matching device found!'
 
