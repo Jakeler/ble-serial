@@ -14,7 +14,8 @@ $ pip install ble-serial
 
 Now you should have 2 new scripts: `ble-scan` and the main `ble-serial`.
 
-On Linux you are ready now and can directly jump to the usage section!
+On Linux/Mac you are ready now and can directly jump to the usage section!
+For Windows follow the [additional steps below](#additional-steps-for-windows).
 
 ### From source (for developers)
 You can clone the repository with:
@@ -44,7 +45,10 @@ $ pip install .
 and started as usual.
 
 ### Additional steps for Windows
-Windows does not have a builtin feature to create virtual serial ports (like Linux does), so it is required to install a additional driver. I decided to use the open source `com0com` Null-modem emulator, downloaded from [here](https://sourceforge.net/projects/signed-drivers/files/com0com/v3.0/) as signed version. This is required because unsigned drivers can not be installed anymore. Note that on latest Windows 10 you likely still have to disable secure boot for it to work.
+Windows does not have a builtin feature to create virtual serial ports (like Linux does), so it is required to install a additional driver. 
+I decided to use the open source `com0com` Null-modem emulator, downloaded from [here](https://sourceforge.net/projects/signed-drivers/files/com0com/v3.0/) as signed version. This is required because unsigned drivers can not be installed anymore.
+
+**Note: on Windows 10+ you still have to disable secure boot for it to work.** Otherwise you might get a `Unexpected Error: SerialException` when starting ble-serial.
 
 ble-serial includes the `ble-com-setup` script to make the `com0com` configuration easier:
 ```console
