@@ -329,6 +329,8 @@ On Linux you can also use the included systemd (user) service to auto start this
 ## Known limitations
 * Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
 
+* Certain baud/chipset/firmware configurations can have significant packet loss, see my [benchmark blog post](https://blog.ja-ke.tech/2021/04/22/ble-serial-2.html#performance) with the HM-10 module. Consider other protocols if the application requires constant high bandwidth, short bursts of data are usually fine though.
+
 ## Closing remarks
 If you encounter unexpected problems, please use the [issue tracker](https://github.com/Jakeler/ble-serial/issues). For general questions there is also the discussions tab.
 As always, I hope it was helpful, if you like it then I would appreciate if you could star it on [GitHub](https://github.com/Jakeler/ble-serial). 
