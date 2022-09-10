@@ -222,7 +222,7 @@ logging options:
 In any case it needs to know which device to connect, the simple and most reliable way to specify this is by device address/id:
 ```console
 $ ble-serial -d 20:91:48:4c:4c:54
-20:38:31.271 | INFO | linux_pty.py: Slave created on /tmp/ttyBLE -> /dev/pts/5
+20:38:31.271 | INFO | linux_pty.py: Port endpoint created on /tmp/ttyBLE -> /dev/pts/5
 20:38:31.271 | INFO | ble_interface.py: Receiver set up
 20:38:31.485 | INFO | ble_interface.py: Trying to connect with 20:91:48:4C:4C:54: UT61E -  JK
 20:38:32.844 | INFO | ble_interface.py: Device 20:91:48:4C:4C:54 connected
@@ -242,7 +242,7 @@ The software acts as transparent bridge, everything that is sent to that virtual
 Another way to find a device is by service uuid:
 ```console
 $ ble-serial -s 0000ffe0-0000-1000-8000-00805f9b34fb
-20:35:41.964 | INFO | linux_pty.py: Slave created on /tmp/ttyBLE -> /dev/pts/5
+20:35:41.964 | INFO | linux_pty.py: Port endpoint created on /tmp/ttyBLE -> /dev/pts/5
 20:35:41.964 | INFO | ble_interface.py: Receiver set up
 20:35:41.964 | WARNING | ble_interface.py: Picking first device with matching service, consider passing a specific device address, especially if there could be multiple devices
 20:35:42.308 | INFO | ble_interface.py: Trying to connect with 20:91:48:4C:4C:54: UT61E -  JK
