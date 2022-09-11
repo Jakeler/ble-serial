@@ -305,6 +305,47 @@ It also helps with figuring out how characteristics are selected:
 ```
 Always try the verbose option if something is not working properly.
 
+## Advanced Usage
+### Multi device connection
+It is possible to connect several devices to a host simultaneously. Limiting factor is only the bluetooth baseband layer, which uses a Active Member Address (AMA, 3 bit). From these 8 possible values address zero is always occupied by the host, so it can be connected to (up to) 7 devices at the same time.
+
+There is no special mode, ble-serial can be just stated multiple times with different parameters. Following are some tips, showing how to do this in practice.
+
+#### Linux and macOS
+Common shells (bash, zsh, fish) have a useful background job feature. Add the `-p` (port) option to make sure every instance has a unique path. Also you probably want to redirect the log output to keep it separate. Resulting command lines could look like:
+```terminal
+$ ble-serial -d $ADDR1 -p /tmp/ttyBLE1 2> dev1.log &
+[1] 178378
+
+$ ble-serial -d $ADDR2 -p /tmp/ttyBLE2 2> dev2.log &
+[2] 178397
+```
+The `&`  at the end causes it to go into background mode immediately, showing the job number and PID. 
+Now it is usual control, here are 2 running visible with `jobs` as expected:
+```
+$ jobs                                                     
+[1]  - running   ble-serial -d ... -p /tmp/ttyBLE1 2> dev1.log &
+[2]  + running   ble-serial -d ... -p /tmp/ttyBLE2 2> dev2.log &
+```
+Get them back to foreground with `fg` or view logs live with `tail -f dev1.log` etc.
+Of course you can also put everything into a shell script. For stopping multiple instances you can send signals with `kill -s SIGINT $PID` instead of going through them manually with `fg`. This will bring ble-serial to graceful shutdown as well, same as ctrl-c.
+
+#### Windows
+More com0com port pairs need to be created manually: go to `Program Files (x86)/com0com` and either use command line `setupc.exe` `install` or the graphical `setupg.exe` 'Add pair' button. The PortNames can be chosen arbitrarily at least for the ble-serial side, but I would recommend to use something between COM1-COM9 for the external side, because I noticed many other applications are incompatible with different naming schemes. So use for example BLE2 <> COM8, BLE3 <> COM7 and so on.
+
+Default cmd has no real background job feature, instead multiple cmd windows or Windows Terminal with tabs can do the trick.
+Make sure to specify the right port for every additional instance, example:
+```
+[Window/Tab 1]
+> ble-serial -d ... -p BLE
+
+[Window/Tab 2]
+> ble-serial -d ... -p BLE2
+
+[Window/Tab 3]
+> ble-serial -d ... -p BLE3
+```
+
 ### Automated connections
 The repo [`helper/`](https://github.com/Jakeler/ble-serial/tree/master/helper) directory contains a `ble-autoconnect.py` script:
 ```console
