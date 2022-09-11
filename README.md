@@ -328,7 +328,8 @@ $ jobs
 [2]  + running   ble-serial -d ... -p /tmp/ttyBLE2 2> dev2.log &
 ```
 Get them back to foreground with `fg` or view logs live with `tail -f dev1.log` etc.
-Of course you can also put everything into a shell script. For stopping multiple instances you can send signals with `kill -s SIGINT $PID` instead of going through them manually with `fg`. This will bring ble-serial to graceful shutdown as well, same as ctrl-c.
+Of course you can also put everything into a shell script. 
+For stopping multiple instances you can send signals with `kill -s SIGINT $PID`, this will bring ble-serial to graceful shutdown as well, same as ctrl-c.
 
 #### Windows
 More com0com port pairs need to be created manually: go to `Program Files (x86)/com0com` and either use command line `setupc.exe` `install` or the graphical `setupg.exe` 'Add pair' button. The PortNames can be chosen arbitrarily at least for the ble-serial side, but I would recommend to use something between COM1-COM9 for the external side, because I noticed many other applications are incompatible with different naming schemes. So use for example BLE2 <> COM8, BLE3 <> COM7 and so on.
@@ -338,10 +339,12 @@ Make sure to specify the right port for every additional instance, example:
 ```
 [Window/Tab 1]
 > ble-serial -d ... -p BLE
-
+```
+```
 [Window/Tab 2]
 > ble-serial -d ... -p BLE2
-
+```
+```
 [Window/Tab 3]
 > ble-serial -d ... -p BLE3
 ```
