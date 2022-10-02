@@ -370,6 +370,10 @@ the serial port shows up on the PC. See the example `autoconnect.ini` for config
 
 On Linux you can also use the included systemd (user) service to auto start this on boot.
 
+### Usage as library
+ble-serial is primarily designed for command line usage. Nonetheless it is possible to import modules of it into another python application. See the
+[`examples/`](https://github.com/Jakeler/ble-serial/tree/master/examples) dir for how to use the ble parts directly.
+
 ## Known limitations
 * Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
 
