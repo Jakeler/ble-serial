@@ -5,32 +5,17 @@ from bleak.exc import BleakError
 import argparse, asyncio
 
 
-async def scan(args):
-    print("Started BLE scan\n")
+async def scan(adapter: str, timeout: float, service_uuid: str) -> [BLEDevice]:
+    base_kwargs = dict(adapter=adapter, timeout=timeout)
 
-    base_kwargs = dict(adapter=args.adapter, timeout=args.sec)
-
-    if args.service_uuid:
-        devices = await BleakScanner.discover(**base_kwargs, service_uuids=[args.service_uuid])
+    if service_uuid:
+        devices = await BleakScanner.discover(**base_kwargs, service_uuids=[service_uuid])
     else:
         devices = await BleakScanner.discover(**base_kwargs)
 
-    await general_scan(devices)
+    return devices
 
-    if args.addr:
-        await deep_scan(args.addr, devices)
-
-    print("\nFinished BLE scan")
-
-async def general_scan(devices: [BLEDevice]):
-    sorted_devices = sorted(devices, key=lambda dev: dev.rssi, reverse=True)
-
-    for d in sorted_devices:
-        print(f'{d.address} (RSSI={d.rssi}): {d.name}')
-
-
-async def deep_scan(addr: str, devices: [BLEDevice]):
-    print(f"\nStarted deep scan of {addr}\n")
+async def deep_scan(addr: str, devices: [BLEDevice]) -> BleakGATTServiceCollection:
 
     devices = filter(lambda dev: dev.address == addr, devices)
     devices_list = list(devices)
@@ -39,12 +24,17 @@ async def deep_scan(addr: str, devices: [BLEDevice]):
         print(f'Found device {device} (out of {len(devices_list)})')
     else:
         print('Found no device with matching address')
-        return
+        return []
 
     async with BleakClient(device) as client:
-        print_details(await client.get_services())
+        return await client.get_services()
 
-    print(f"\nCompleted deep scan of {addr}")
+
+def print_list(devices: [BLEDevice]):
+    sorted_devices = sorted(devices, key=lambda dev: dev.rssi, reverse=True)
+
+    for d in sorted_devices:
+        print(f'{d.address} (RSSI={d.rssi}): {d.name}')
 
 def print_details(serv: BleakGATTServiceCollection):
     INDENT = '    '
@@ -54,6 +44,22 @@ def print_details(serv: BleakGATTServiceCollection):
             print(INDENT, 'CHARACTERISTIC', char, char.properties)
             for desc in char.descriptors:
                 print(INDENT*2, 'DESCRIPTOR', desc)
+
+
+async def run_from_args(args):
+    print("Started general BLE scan\n")
+    devices = await scan(args.adapter, args.sec, args.service_uuid)
+    if len(devices) == 0:
+        print('No devices found')
+        return # no point in finishing / deep scan
+    print_list(devices)
+    print("\nFinished general BLE scan")
+
+    if args.addr:
+        print(f"\nStarted deep scan of {args.addr}\n")
+        services = await deep_scan(args.addr, devices)
+        print_details(services)
+        print(f"\nCompleted deep scan of {args.addr}")
 
 
 # Extra function for console scripts
@@ -72,7 +78,6 @@ def launch():
     args = parser.parse_args()
 
     try:
-        asyncio.run(scan(args))
+        asyncio.run(run_from_args(args))
     except BleakError as be:
         print('ERROR:', be)
-
