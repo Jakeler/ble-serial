@@ -7,9 +7,6 @@ def parse_args():
 
     parser.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
         help='Increase verbosity, can be specified multiple times for connection/DBus debugging')
-    parser.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
-        help=DEFAULT_PORT_MSG)
-
 
     con_group = parser.add_argument_group('connection parameters')
     con_group.add_argument('-t', '--timeout', dest='timeout', required=False, default=5.0, type=float, metavar='SEC',
@@ -39,6 +36,16 @@ def parse_args():
         help='Enable optional logging of all bluetooth traffic to file')
     log_group.add_argument('-b', '--binary', dest='binlog', required=False, action='store_true',
         help='Log data as raw binary, disable transformation to hex. Works only in combination with -l')
+
+    uart_group = parser.add_argument_group('serial port parameters')
+    uart_group.add_argument('-p', '--port', dest='port', required=False, default=DEFAULT_PORT,
+        help=DEFAULT_PORT_MSG)
+
+    net_group = parser.add_argument_group('network options')
+    net_group.add_argument('--expose-tcp-host', dest='tcp_host', required=False, default='127.0.0.1',
+        help='Network interface for the server listen on')
+    net_group.add_argument('--expose-tcp-port', dest='tcp_port', required=False, default=None, type=int,
+        help='Port to listen on, disables local serial port and enables TCP server if specified')
 
     args = parser.parse_args()
 
