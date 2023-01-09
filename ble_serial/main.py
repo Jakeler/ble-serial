@@ -1,6 +1,7 @@
 import logging, asyncio
 from bleak.exc import BleakError
 from ble_serial import platform_uart as UART
+from ble_serial.ports.tcp_socket import TCP_Socket
 from ble_serial.bluetooth.ble_interface import BLE_interface
 from ble_serial.log.fs_log import FS_log, Direction
 from ble_serial.log.console_log import setup_logger
@@ -24,7 +25,8 @@ class Main():
         loop = asyncio.get_event_loop()
         loop.set_exception_handler(self.excp_handler)
         try:
-            self.uart = UART(args.port, loop, args.mtu)
+            # self.uart = UART(args.port, loop, args.mtu)
+            self.uart = TCP_Socket('0.0.0.0', 4444, 20)
             self.bt = BLE_interface(args.adapter, args.service_uuid)
             if args.filename:
                 self.log = FS_log(args.filename, args.binlog)
