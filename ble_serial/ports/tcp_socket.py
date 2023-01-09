@@ -22,6 +22,10 @@ class TCP_Socket(ISerial):
 
     def handle_connect(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         logging.info(f'New TCP peer connected: {writer.get_extra_info("peername")}')
+        if self.connected:
+            logging.warning('More than one connection is not allowed, closing')
+            writer.close()
+            return
         self.writer = writer
         self.reader = reader
         self.connected = True
