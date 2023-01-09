@@ -28,8 +28,10 @@ class TCP_Socket(ISerial):
 
 
     async def run_loop(self):
-        self.server = server = await asyncio.start_server(
+        server =  await asyncio.start_server(
             self.handle_connect, self.host, self.port)
+
+        logging.info('TCP server started' if server.is_serving() else 'TCP server failed')
         for sock in server.sockets:
             logging.debug(f'Listening on {sock}')
 
