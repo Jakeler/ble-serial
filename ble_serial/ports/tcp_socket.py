@@ -41,7 +41,13 @@ class TCP_Socket(ISerial):
 
         while True:
             if self.connected:
-                data = await self.reader.read(self.mtu)
+                try:
+                    data = await self.reader.read(self.mtu)
+                except OSError as ose:
+                    logging.warning(f'Client disconnected: {ose}')
+                    self.connected = False
+                    continue
+
                 if len(data) > 0:
                     logging.debug(f'Received {data}')
                     self._cb(data)
