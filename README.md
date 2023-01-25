@@ -268,7 +268,7 @@ $ ble-serial -d 20:91:48:4c:4c:54 -r 0000ffe1-0000-1000-8000-00805f9b34fb --perm
 Here `-r` is enough for `ro` = read only. 
 This works also the other way around with `wo` = write only.
 
-### Logging
+### Log to file
 There is an option to log all traffic on the link to a text file:
 ```
 logging options:
@@ -286,28 +286,6 @@ $ cat demo.txt
 2019-12-09 21:15:53.999795 -> BLE-IN: b0 b0 b0 b0 b0 b0 3b b0 b0 b0 ba b0 0d 8a
 ```
 Per default it is transformed to hex bytes, use `-b`/`--binary` to log raw data, useful if your input is already ASCII etc.
-
-You can use `-v` to increase the log verbosity to DEBUG:
-```console
-18:31:25.136 | DEBUG | ble_interface.py: Received notify from 17: bytearray(b'\xb0\xb0\xb0\xb0\xb0\xb0;\xb0\xb0\xb0\xba\xb0\r\x8a')
-18:31:25.136 | DEBUG | linux_pty.py: Write: bytearray(b'\xb0\xb0\xb0\xb0\xb0\xb0;\xb0\xb0\xb0\xba\xb0\r\x8a')
-
-18:31:25.373 | DEBUG | linux_pty.py: Read: b'hello world'
-18:31:25.373 | DEBUG | ble_interface.py: Sending b'hello world'
-```
-This will log all traffic going through. Note that everything shows up two times, because it goes through the ble module and then into the serial port and vice versa.
-It also helps with figuring out how characteristics are selected:
-```console
-14:32:47.589 | DEBUG | ble_interface.py: No write uuid specified, trying builtin list
-14:32:47.589 | DEBUG | ble_interface.py: Characteristic candidates for write: 
-        0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific ['read', 'write-without-response', 'notify']
-14:32:47.589 | INFO | ble_interface.py: Found write characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
-14:32:47.589 | DEBUG | ble_interface.py: No notify uuid specified, trying builtin list
-14:32:47.589 | DEBUG | ble_interface.py: Characteristic candidates for notify: 
-        0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific ['read', 'write-without-response', 'notify']
-14:32:47.589 | INFO | ble_interface.py: Found notify characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
-```
-Always try the verbose option if something is not working properly.
 
 ## Advanced Usage
 ### TCP socket server
@@ -416,6 +394,32 @@ On Linux you can also use the included systemd (user) service to auto start this
 ### Usage as library
 ble-serial is primarily designed for command line usage. Nonetheless it is possible to import modules of it into another python application. See the
 [`examples/`](https://github.com/Jakeler/ble-serial/tree/master/examples) dir for how to use the ble parts directly.
+
+## Troubleshooting
+First you can use `-v` to increase the log verbosity to DEBUG:
+```console
+18:31:25.136 | DEBUG | ble_interface.py: Received notify from 17: bytearray(b'\xb0\xb0\xb0\xb0\xb0\xb0;\xb0\xb0\xb0\xba\xb0\r\x8a')
+18:31:25.136 | DEBUG | linux_pty.py: Write: bytearray(b'\xb0\xb0\xb0\xb0\xb0\xb0;\xb0\xb0\xb0\xba\xb0\r\x8a')
+
+18:31:25.373 | DEBUG | linux_pty.py: Read: b'hello world'
+18:31:25.373 | DEBUG | ble_interface.py: Sending b'hello world'
+```
+This will log all traffic going through. Note that everything shows up two times, because it goes through the ble module and then into the serial port and vice versa.
+It also helps with figuring out how characteristics are selected:
+```console
+14:32:47.589 | DEBUG | ble_interface.py: No write uuid specified, trying builtin list
+14:32:47.589 | DEBUG | ble_interface.py: Characteristic candidates for write: 
+        0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific ['read', 'write-without-response', 'notify']
+14:32:47.589 | INFO | ble_interface.py: Found write characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
+14:32:47.589 | DEBUG | ble_interface.py: No notify uuid specified, trying builtin list
+14:32:47.589 | DEBUG | ble_interface.py: Characteristic candidates for notify: 
+        0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific ['read', 'write-without-response', 'notify']
+14:32:47.589 | INFO | ble_interface.py: Found notify characteristic 0000ffe1-0000-1000-8000-00805f9b34fb (H. 17)
+```
+Always try the verbose option if something is not working properly.
+
+If this is not enough use the double verbose `-vv` flag. It activates debug logging also for the underlying [bleak](https://github.com/hbldh/bleak) module and shows interactions with the bluetooth stack more detailed.
+Check out the [issue tracker](https://github.com/hbldh/bleak/issues) there too, it is often helpful for problems not directly caused by ble-serial. 
 
 ## Known limitations
 * Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
