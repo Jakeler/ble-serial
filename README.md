@@ -183,15 +183,13 @@ As you can see, here the read/notify UUID is `00000006-af0e-4c28-95a4-4509fd91e0
 The `ble-serial` tool itself has a few more options:
 ```console
 $ ble_serial -h
-usage: __main__.py [-h] [-v] -d DEVICE [-t {public,random}] [-i ADAPTER] [-m MTU] [-w WRITE_UUID] [-l FILENAME] [-b]
-                   [-p PORT] [-r READ_UUID]
+usage: __main__.py [-h] [-v] [-t SEC] [-i ADAPTER] [-m MTU] [-d DEVICE] [-a {public,random}] [-s SERVICE_UUID] [-w WRITE_UUID] [-r READ_UUID] [--permit {ro,rw,wo}] [-l FILENAME] [-b] [-p PORT] [--expose-tcp-host TCP_HOST] [--expose-tcp-port TCP_PORT]
 
 Create virtual serial ports from BLE devices.
 
 options:
   -h, --help            show this help message and exit
   -v, --verbose         Increase verbosity, can be specified multiple times for connection/DBus debugging (default: 0)
-  -p PORT, --port PORT  Symlink to virtual serial port (default: /tmp/ttyBLE)
 
 connection parameters:
   -t SEC, --timeout SEC
@@ -212,13 +210,8 @@ device parameters:
   -r READ_UUID, --read-uuid READ_UUID
                         The GATT characteristic to subscribe to notifications to read the serial data (default: None)
   --permit {ro,rw,wo}   Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo) (default: rw)
-
-logging options:
-  -l FILENAME, --log FILENAME
-                        Enable optional logging of all bluetooth traffic to file (default: None)
-  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l (default: False)
-
 ```
+
 In any case it needs to know which device to connect, the simple and most reliable way to specify this is by device address/id:
 ```console
 $ ble-serial -d 20:91:48:4c:4c:54
@@ -232,7 +225,11 @@ $ ble-serial -d 20:91:48:4c:4c:54
 
 ```
 This log shows a successful start on Linux, the virtual serial port was opened on `/dev/pts/8`, the number at the end changes, depending on how many pseudo terminals are already open on the system. It uses the same mechanism on macOS, just the path is slightly different, in the format `/dev/ttys000`.
-In addition it automatically creates a symlink to `/tmp/ttyBLE`, so you can easily access it always on the same file, the default can be changed with the `-p`/`--port` option.
+In addition it automatically creates a symlink to `/tmp/ttyBLE`, so you can easily access it always on the same file, the default can be changed with:
+```
+serial port parameters:
+  -p PORT, --port PORT  Symlink to virtual serial port (default: /tmp/ttyBLE)
+```
 
 On Windows it uses the port pair created in the setup described above, this does not dynamically change and endpoint is always `COM9` if you use the default script.
 
@@ -273,6 +270,13 @@ This works also the other way around with `wo` = write only.
 
 ### Logging
 There is an option to log all traffic on the link to a text file:
+```
+logging options:
+  -l FILENAME, --log FILENAME
+                        Enable optional logging of all bluetooth traffic to file (default: None)
+  -b, --binary          Log data as raw binary, disable transformation to hex. Works only in combination with -l (default: False)
+```
+
 ```console
 $ ble-serial -d 20:91:48:4c:4c:54 -l demo.txt
 ...
@@ -281,7 +285,7 @@ $ cat demo.txt
 2019-12-09 21:15:53.491681 -> BLE-IN: b0 b0 b0 b0 b0 b0 3b b0 b0 b0 ba b0 0d 8a
 2019-12-09 21:15:53.999795 -> BLE-IN: b0 b0 b0 b0 b0 b0 3b b0 b0 b0 ba b0 0d 8a
 ```
-Per default it is transformed to hex bytes, use `-b`/`--binary` to log raw data.
+Per default it is transformed to hex bytes, use `-b`/`--binary` to log raw data, useful if your input is already ASCII etc.
 
 You can use `-v` to increase the log verbosity to DEBUG:
 ```console
@@ -306,10 +310,19 @@ It also helps with figuring out how characteristics are selected:
 Always try the verbose option if something is not working properly.
 
 ## Advanced Usage
+### TCP socket server
+```
+network options:
+  --expose-tcp-host TCP_HOST
+                        Network interface for the server listen on (default: 127.0.0.1)
+  --expose-tcp-port TCP_PORT
+                        Port to listen on, disables local serial port and enables TCP server if specified (default: None)
+```
+
 ### Multi device connection
 It is possible to connect several devices to a host simultaneously. Limiting factor is only the bluetooth baseband layer, which uses a Active Member Address (AMA, 3 bit). From these 8 possible values address zero is always occupied by the host, so it can be connected to (up to) 7 devices at the same time.
 
-There is no special mode, ble-serial can be just stated multiple times with different parameters. Following are some tips, showing how to do this in practice.
+There is no special mode, ble-serial can be just started multiple times with different parameters. Following are some tips, showing how to do this in practice.
 
 #### Linux and macOS
 Common shells (bash, zsh, fish) have a useful background job feature. Add the `-p` (port) option to make sure every instance has a unique path. Also you probably want to redirect the log output to keep it separate. Resulting command lines could look like:
