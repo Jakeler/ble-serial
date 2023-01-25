@@ -311,6 +311,7 @@ Always try the verbose option if something is not working properly.
 
 ## Advanced Usage
 ### TCP socket server
+Instead of the serial port emulation there is a also builtin raw tcp server since version 2.7:
 ```
 network options:
   --expose-tcp-host TCP_HOST
@@ -318,6 +319,35 @@ network options:
   --expose-tcp-port TCP_PORT
                         Port to listen on, disables local serial port and enables TCP server if specified (default: None)
 ```
+This is only activated if TCP_PORT is set. Also it removes the dependency to com0com or other drivers.
+
+The server is listening on localhost per default, therefore only reachable from apps running on the same machine. Other interfaces or `0.0.0.0` for all interfaces can be specified with TCP_HOST.
+Security is to consider though, this is plain TCP without encryption or authentication. Only recommended on a separate local network, otherwise stay with the default/localhost.
+
+Note: this is limited to one concurrent connection, it will reject all connection attempts if there is already a client connected and emit a warning, example:
+```console
+$ ble-serial -d 20:91:48:4C:4C:54 --expose-tcp-port 4002 -v
+[...]
+19:30:11.650 | INFO | main.py: Running main loop!
+19:30:11.650 | INFO | tcp_socket.py: TCP server started
+19:30:11.650 | DEBUG | tcp_socket.py: Listening on <asyncio.TransportSocket fd=8, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('127.0.0.1', 4002)>
+[...]
+19:30:13.618 | INFO | tcp_socket.py: New TCP peer connected: ('127.0.0.1', 49104)
+19:30:13.787 | DEBUG | ble_interface.py: Received notify from 0000ffe1-0000-1000-8000-00805f9b34fb (Handle: 17): Vendor specific: bytearray(b'\xb0\xb0\xb0\xb01\xb6;\xb0\xb0\xb0\xba\xb0\r\x8a')
+19:30:13.787 | DEBUG | tcp_socket.py: Sending: bytearray(b'\xb0\xb0\xb0\xb01\xb6;\xb0\xb0\xb0\xba\xb0\r\x8a')
+[...]
+19:30:26.726 | INFO | tcp_socket.py: New TCP peer connected: ('127.0.0.1', 56172)
+19:30:26.726 | WARNING | tcp_socket.py: More than one connection is not allowed, closing
+```
+
+Now there a various ways to connect to it. 
+#### Linux and macOS
+- Very simple option: `netcat 127.0.0.1 4002` or `telnet 127.0.0.1 4002`
+- More powerful: `socat -dd tcp:localhost:4002 -`, can forward data to many modules, not only stdin/stdout.
+- Custom apps are easy to make with tcp too
+#### Windows
+- Graphical: Putty, just put in the IP+port and select Other - Raw as connection type.
+- Terminal: netcat/telnet/socat can be installed separately
 
 ### Multi device connection
 It is possible to connect several devices to a host simultaneously. Limiting factor is only the bluetooth baseband layer, which uses a Active Member Address (AMA, 3 bit). From these 8 possible values address zero is always occupied by the host, so it can be connected to (up to) 7 devices at the same time.
