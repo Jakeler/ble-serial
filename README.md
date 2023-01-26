@@ -422,7 +422,8 @@ If this is not enough use the double verbose `-vv` flag. It activates debug logg
 Check out the [issue tracker](https://github.com/hbldh/bleak/issues) there too, it is often helpful for problems not directly caused by ble-serial. 
 
 ## Known limitations
-* Chromium 73+ based applications, including NW.js/electron desktop apps, for example current Betaflight/INAV Configurator: Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium.
+* Chromium 73+ based applications, including NW.js/electron desktop apps. Connection to the virtual serial port (pty) fails. This is because of explicit whitelisting in chromium. 
+TCP might be an alternative (see above), for example in Betaflight Configurator with Manual selection and `tcp://IP:PORT` url as port.
 
 * Certain baud/chipset/firmware configurations can have significant packet loss, see my [benchmark blog post](https://blog.ja-ke.tech/2021/04/22/ble-serial-2.html#performance) with the HM-10 module. Consider other protocols if the application requires constant high bandwidth, short bursts of data are usually fine though.
 
