@@ -5,8 +5,8 @@ from bleak.exc import BleakError
 import argparse, asyncio
 
 
-async def scan(adapter: str, timeout: float, service_uuid: str) -> [BLEDevice]:
-    base_kwargs = dict(adapter=adapter, timeout=timeout)
+async def scan(adapter: str, timeout: float, service_uuid: str) -> dict:
+    base_kwargs = dict(adapter=adapter, timeout=timeout, return_adv=True)
 
     if service_uuid:
         devices = await BleakScanner.discover(**base_kwargs, service_uuids=[service_uuid])
@@ -15,8 +15,8 @@ async def scan(adapter: str, timeout: float, service_uuid: str) -> [BLEDevice]:
 
     return devices
 
-async def deep_scan(addr: str, devices: [BLEDevice]) -> BleakGATTServiceCollection:
-
+async def deep_scan(addr: str, devices: dict) -> BleakGATTServiceCollection:
+    devices = [data[0] for data in devices.values()]
     devices = filter(lambda dev: dev.address == addr, devices)
     devices_list = list(devices)
     if len(devices_list) > 0:
@@ -27,14 +27,13 @@ async def deep_scan(addr: str, devices: [BLEDevice]) -> BleakGATTServiceCollecti
         return []
 
     async with BleakClient(device) as client:
-        return await client.get_services()
+        return client.services
 
 
-def print_list(devices: [BLEDevice]):
-    sorted_devices = sorted(devices, key=lambda dev: dev.rssi, reverse=True)
+def print_list(devices: dict):
+    for (dev, adv) in devices.values():
+        print(f'{dev.address} (rssi={adv.rssi}, power={adv.tx_power}): {dev.name}')
 
-    for d in sorted_devices:
-        print(f'{d.address} (RSSI={d.rssi}): {d.name}')
 
 def print_details(serv: BleakGATTServiceCollection):
     INDENT = '    '
@@ -81,3 +80,4 @@ def launch():
         asyncio.run(run_from_args(args))
     except BleakError as be:
         print('ERROR:', be)
+
