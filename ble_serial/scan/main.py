@@ -30,9 +30,14 @@ async def deep_scan(addr: str, devices: dict) -> BleakGATTServiceCollection:
         return client.services
 
 
-def print_list(devices: dict):
+def print_list(devices: dict, verbose: bool):
     for (dev, adv) in devices.values():
-        print(f'{dev.address} (rssi={adv.rssi}, power={adv.tx_power}): {dev.name}')
+        print(f'{dev.address} (rssi={adv.rssi}): {dev.name}')
+        if verbose:
+            for entry_pair in adv._asdict().items():
+                print('    %s=%s' % entry_pair)
+            print() # linebreak
+            
 
 
 def print_details(serv: BleakGATTServiceCollection):
@@ -51,7 +56,7 @@ async def run_from_args(args):
     if len(devices) == 0:
         print('No devices found')
         return # no point in finishing / deep scan
-    print_list(devices)
+    print_list(devices, args.verbose)
     print("\nFinished general BLE scan")
 
     if args.addr:
@@ -74,6 +79,8 @@ def launch():
         help='Try to connect to device and read out service/characteristic UUIDs')
     parser.add_argument('-s', '--service-uuid', dest='service_uuid', required=False,
         help='The service used for scanning of potential devices')
+    parser.add_argument('-v', '--verbose', dest='verbose', required=False, action='store_true',
+        help='Print all infos from advertisement data')
     args = parser.parse_args()
 
     try:
