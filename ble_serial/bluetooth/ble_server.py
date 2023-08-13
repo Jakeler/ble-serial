@@ -6,17 +6,23 @@ import os, logging, asyncio
 from typing import Optional
 
 class BLE_server(BLE_interface):
-    def __init__(self, adapter: str, service_uuid: str, write_uuid: str, read_uuid: str):
+    def __init__(self, adapter: str, service_uuid: str, write_uuid: str, read_uuid: str, gap_name: str):
         self._send_queue = asyncio.Queue()
         self.data_read_done = asyncio.Event()
 
         self.adapter = adapter # unused / not implemented in bless
+        self.gap_name = gap_name
         self.service_uuid = service_uuid
         self.write_uuid = check_fill_empty(service_uuid, write_uuid, 'write')
         self.read_uuid = check_fill_empty(service_uuid, read_uuid, 'read')
         
-        # Workaround for bluez not sending constant names, PID always changes
-        local_name = f'BLE Serial Server {os.getpid()}'
+        # Workaround for bluez not sending constant names, PID always changes,
+        # if custom name has not been provided
+        if self.gap_name is None:
+            local_name = f'BLE Serial Server {os.getpid()}'
+        else:
+            local_name = self.gap_name
+
         logging.info(f'Name/ID: {local_name}')
 
         self.server = BlessServer(name=local_name) # loop=asyncio.get_event_loop())

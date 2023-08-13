@@ -38,7 +38,7 @@ class Main():
                 self.uart = UART(args.port, loop, args.mtu)
 
             self.bt = self.BLE_class(args.adapter, args.service_uuid,
-                args.write_uuid, args.read_uuid)
+                args.write_uuid, args.read_uuid, args.gap_name)
 
             if args.filename:
                 self.log = FS_log(args.filename, args.binlog)

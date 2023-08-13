@@ -35,6 +35,8 @@ def parse_args() -> Namespace:
 
     dev_group.add_argument('-g', '--role', dest='gap_role', required=False, default='client', choices=['server', 'client'],
         help='Operate as BLE role: client (BLE central), server (BLE peripheral)')
+    dev_group.add_argument('-n', '--name', dest='gap_name', required=False,
+        help='Custom name for GAP in BLE server mode. Otherwise "BLE Serial Server {PID}" name will be used')
 
     log_group = parser.add_argument_group('logging options')
     log_group.add_argument('-l', '--log', dest='filename', required=False,
