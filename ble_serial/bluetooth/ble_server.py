@@ -17,7 +17,7 @@ class BLE_server(BLE_interface):
         
         # Workaround for bluez not sending constant names, PID always changes
         local_name = f'BLE Serial Server {os.getpid()}'
-        logging.debug(f'Name/ID: {local_name}')
+        logging.info(f'Name/ID: {local_name}')
 
         self.server = BlessServer(name=local_name) # loop=asyncio.get_event_loop())
         self.server.read_request_func = self.handle_incoming_read
