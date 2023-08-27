@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, Namespace
 from ble_serial import DEFAULT_PORT, DEFAULT_PORT_MSG
 
-def parse_args():
+def parse_args() -> Namespace:
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, 
         description='Create virtual serial ports from BLE devices.')
 
@@ -30,6 +30,9 @@ def parse_args():
         help='The GATT characteristic to subscribe to notifications to read the serial data')
     dev_group.add_argument('--permit', dest='mode', required=False, default='rw', choices=['ro', 'rw', 'wo'],
         help='Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo)')
+    
+    dev_group.add_argument('-g', '--role', dest='gap_role', required=False, default='client', choices=['server', 'client'],
+        help='Operate as BLE role: client (BLE central), server (BLE peripheral)')
 
     log_group = parser.add_argument_group('logging options')
     log_group.add_argument('-l', '--log', dest='filename', required=False,
@@ -49,7 +52,19 @@ def parse_args():
 
     args = parser.parse_args()
 
+    client_checks(parser, args)
+    server_checks(parser, args)
+
+    return args
+
+
+def client_checks(parser: ArgumentParser, args: Namespace):
     if not args.device and not args.service_uuid:
         parser.error('at least one of -d/--dev and -s/--service-uuid required')
 
-    return args
+def server_checks(parser: ArgumentParser, args: Namespace):
+    if args.gap_role != 'server':
+        return # not applicable
+    if not args.service_uuid:
+        parser.error('Server role requires -s/--service-uuid')
+
