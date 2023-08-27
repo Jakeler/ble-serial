@@ -132,6 +132,7 @@ options:
                         Try to connect to device and read out service/characteristic UUIDs (default: None)
   -s SERVICE_UUID, --service-uuid SERVICE_UUID
                         The service used for scanning of potential devices (default: None)
+  -v, --verbose         Print all infos from advertisement data (default: False)
 ```
 
 On Bluetooth 2.0 there was a "serial port profile", with 4.0 - 5.2 (BLE) there is unfortunately no standardized mode anymore, every chip manufacturer chooses their own UUIDs to implement the features. 
