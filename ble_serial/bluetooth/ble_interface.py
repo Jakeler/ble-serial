@@ -3,7 +3,7 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.exc import BleakError
 from ble_serial.bluetooth.constants import ble_chars
 import logging, asyncio
-from typing import Optional
+from typing import Optional, List
 
 class BLE_interface():
     def __init__(self, adapter: str, service: str):
@@ -46,12 +46,12 @@ class BLE_interface():
         else:
             logging.info('Reading disabled, skipping read UUID detection')
 
-    def find_char(self, uuid: Optional[str], req_props: [str]) -> BleakGATTCharacteristic:
+    def find_char(self, uuid: Optional[str], req_props: List[str]) -> BleakGATTCharacteristic:
         name = req_props[0]
 
         # Use user supplied UUID first, otherwise try included list
         if uuid:
-            uuid_candidates = [uuid]
+            uuid_candidates = [uuid.lower()]
         else:
             uuid_candidates = ble_chars
             logging.debug(f'No {name} uuid specified, trying builtin list')
