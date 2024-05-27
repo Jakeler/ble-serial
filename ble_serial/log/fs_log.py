@@ -21,4 +21,4 @@ class FS_log:
 
     def finish(self):
         self.file.close()
-        logging.info(f'Logfile closed')
+        logging.info('Logfile closed')

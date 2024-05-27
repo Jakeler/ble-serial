@@ -17,11 +17,11 @@ class BLE_interface():
         if addr_str:
             device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **self.scan_args)
         else:
-            logging.warning(f'Picking first device with matching service, '
+            logging.warning('Picking first device with matching service, '
                 'consider passing a specific device address, especially if there could be multiple devices')
             device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **self.scan_args)
 
-        assert device, f'No matching device found!'
+        assert device, 'No matching device found!'
 
         # address_type used only in Windows .NET currently
         self.dev = BleakClient(device, address_type=addr_type,

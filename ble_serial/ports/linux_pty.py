@@ -38,7 +38,7 @@ class UART(ISerial):
         # Unregister the fd
         self.loop.remove_reader(self._controller_fd)
         os.remove(self.symlink)
-        logging.info(f'Serial reader and symlink removed')
+        logging.info('Serial reader and symlink removed')
 
 
     def read_handler(self):

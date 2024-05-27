@@ -19,7 +19,7 @@ class TCP_Socket(ISerial):
             logging.debug(f'Sending: {value}')
             self.writer.write(value)
         else:
-            logging.debug(f'No client connected, dropping data...')
+            logging.debug('No client connected, dropping data...')
 
     def handle_connect(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         logging.info(f'New TCP peer connected: {writer.get_extra_info("peername")}')
