@@ -9,10 +9,10 @@ with open("requirements.txt", "r") as fr:
 
 setuptools.setup(
     name="ble-serial",
-    version="2.7.1",
+    version="2.8.0",
     author="Jake",
     author_email="ble-serial-pypi@ja-ke.tech",
-    description="A package to connect BLE serial adapters",
+    description="Connects BLE adapters with virtual serial ports",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Jakeler/ble-serial",
