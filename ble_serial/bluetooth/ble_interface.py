@@ -95,7 +95,7 @@ class BLE_interface():
         assert hasattr(self, '_cb'), 'Callback must be set before receive loop!'
         while True:
             data = await self._send_queue.get()
-            if data == None:
+            if data is None:
                 break # Let future end on shutdown
             if not self.write_enabled:
                 logging.warning(f'Ignoring unexpected write data: {data}')

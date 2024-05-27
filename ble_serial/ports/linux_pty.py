@@ -56,7 +56,7 @@ class UART(ISerial):
     async def run_loop(self):
         while True:
             data = await self._send_queue.get()
-            if data == None:
+            if data is None:
                 break # Let future end on shutdown
             logging.debug(f'Write: {data}')
             os.write(self._controller_fd, data)
