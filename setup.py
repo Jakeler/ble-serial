@@ -1,4 +1,5 @@
-import setuptools, platform
+import setuptools
+import platform
 
 with open("README.md", "r") as fh:
     long_description = fh.read()

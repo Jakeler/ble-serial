@@ -1,8 +1,8 @@
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
-from bleak.exc import BleakError
 from ble_serial.bluetooth.constants import ble_chars
-import logging, asyncio
+import logging
+import asyncio
 from typing import Optional, List
 
 class BLE_interface():

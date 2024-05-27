@@ -10,7 +10,8 @@ from bleak.backends.device import BLEDevice
 
 import subprocess
 import signal
-import argparse, configparser
+import argparse
+import configparser
 import logging
 
 async def run_tool(conf_section: dict):

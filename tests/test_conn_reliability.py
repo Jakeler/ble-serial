@@ -1,4 +1,5 @@
-import sys, subprocess
+import sys
+import subprocess
 import time
 
 ble_mac = sys.argv[1]

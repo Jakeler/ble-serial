@@ -1,5 +1,4 @@
 from serial import Serial
-from time import sleep
 
 # AT command and responses
 CMD = ('AT', 'OK')

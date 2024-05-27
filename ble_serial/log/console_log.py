@@ -1,4 +1,5 @@
-import logging, coloredlogs
+import logging
+import coloredlogs
 
 def setup_logger(verbosity: int):
     bleak_logger = logging.getLogger('bleak')

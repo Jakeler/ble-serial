@@ -1,5 +1,6 @@
 from ble_serial.ports.interface import ISerial
-import asyncio, logging
+import asyncio
+import logging
 
 
 class TCP_Socket(ISerial):

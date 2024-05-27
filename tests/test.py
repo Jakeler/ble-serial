@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor as TPE
-import os, csv
+import csv
 from time import sleep
 
 from hm11_at_config import set_module_baud

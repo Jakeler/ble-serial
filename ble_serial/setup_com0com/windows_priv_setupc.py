@@ -1,5 +1,7 @@
-import os, sys
-import subprocess, re
+import os
+import sys
+import subprocess
+import re
 
 # For compatibility:
 # https://support.microsoft.com/en-us/topic/howto-specify-serial-ports-larger-than-com9-db9078a5-b7b6-bf00-240f-f749ebfd913e

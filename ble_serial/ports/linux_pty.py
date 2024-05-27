@@ -1,6 +1,10 @@
 from ble_serial.ports.interface import ISerial
-import asyncio, logging
-import os, pty, tty, termios
+import asyncio
+import logging
+import os
+import pty
+import tty
+import termios
 
 class UART(ISerial):
     def __init__(self, symlink: str, ev_loop: asyncio.AbstractEventLoop, mtu: int):

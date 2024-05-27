@@ -1,6 +1,8 @@
 from serial import Serial
 from time import sleep, perf_counter
-import subprocess, os, signal
+import subprocess
+import os
+import signal
 
 def read_serial(port: str, conn_baud: int, expected_data: bytes):
     buffer = bytearray()

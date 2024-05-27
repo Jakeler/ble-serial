@@ -1,5 +1,6 @@
 from ble_serial.ports.interface import ISerial
-import asyncio, logging
+import asyncio
+import logging
 from serial import Serial # pyserial
 from queue import Queue, Empty
 from concurrent.futures import ThreadPoolExecutor

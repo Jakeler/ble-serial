@@ -1,5 +1,5 @@
-import logging, datetime
-from enum import Enum
+import logging
+import datetime
 
 class Direction:
     BLE_IN = "-> BLE-IN"

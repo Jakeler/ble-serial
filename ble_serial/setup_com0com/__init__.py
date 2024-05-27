@@ -1,7 +1,9 @@
 import argparse
 
 def run_setup(path: str):
-    import ctypes, sys, os
+    import ctypes
+    import sys
+    import os
 
     script_path = os.path.dirname(__file__)
     res = ctypes.windll.shell32.ShellExecuteW(None, "runas", 

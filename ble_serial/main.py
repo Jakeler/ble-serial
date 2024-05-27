@@ -1,4 +1,5 @@
-import logging, asyncio
+import logging
+import asyncio
 from bleak.exc import BleakError
 from ble_serial import platform_uart as UART
 from ble_serial.ports.tcp_socket import TCP_Socket

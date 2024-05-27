@@ -1,8 +1,8 @@
 from bleak import BleakScanner, BleakClient
 from bleak.backends.service import BleakGATTServiceCollection
-from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
-import argparse, asyncio
+import argparse
+import asyncio
 
 
 async def scan(adapter: str, timeout: float, service_uuid: str) -> dict:
