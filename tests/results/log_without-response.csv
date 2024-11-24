@@ -1,0 +1,4 @@
+dir,rated_baud,packet_size,delay,valid,loss_percent,rx_bits,rx_baud
+BLE >> UART,115200,128,0,True,0.0,16026,20033
+BLE >> UART,115200,128,0.064,True,0.0,14062,17578
+BLE >> UART,115200,128,0.128,True,0.0,7933,9916
