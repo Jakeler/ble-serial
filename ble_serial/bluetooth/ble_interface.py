@@ -31,12 +31,15 @@ class BLE_interface():
         await self.dev.connect()
         logging.info(f'Device {self.dev.address} connected')
 
-    async def setup_chars(self, write_uuid: str, read_uuid: str, mode: str):
+    async def setup_chars(self, write_uuid: str, read_uuid: str, mode: str, write_response_required: bool):
         self.read_enabled = 'r' in mode
         self.write_enabled = 'w' in mode
 
         if self.write_enabled:
-            self.write_char = self.find_char(write_uuid, ['write', 'write-without-response'])
+            self.write_response_required = write_response_required
+            
+            write_cap = ['write' if write_response_required else 'write-without-response']
+            self.write_char = self.find_char(write_uuid, write_cap)
         else:
             logging.info('Writing disabled, skipping write UUID detection')
         
@@ -101,7 +104,7 @@ class BLE_interface():
                 logging.warning(f'Ignoring unexpected write data: {data}')
                 continue
             logging.debug(f'Sending {data}')
-            await self.dev.write_gatt_char(self.write_char, data)
+            await self.dev.write_gatt_char(self.write_char, data, self.write_response_required)
 
     def stop_loop(self):
         logging.info('Stopping Bluetooth event loop')

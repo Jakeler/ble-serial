@@ -211,6 +211,8 @@ device parameters:
   -r READ_UUID, --read-uuid READ_UUID
                         The GATT characteristic to subscribe to notifications to read the serial data (default: None)
   --permit {ro,rw,wo}   Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo) (default: rw)
+  --write-with-response
+                        Wait for a response from the remote device before sending more. Better data integrity, higher latency and less througput (default: False)
 ```
 
 In any case it needs to know which device to connect, the simple and most reliable way to specify this is by device address/id:

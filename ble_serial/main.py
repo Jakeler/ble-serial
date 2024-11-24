@@ -43,7 +43,7 @@ class Main():
 
             self.uart.start()
             await self.bt.connect(args.device, args.addr_type, args.timeout)
-            await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode)
+            await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode, args.write_with_response)
 
             logging.info('Running main loop!')
             main_tasks = {
