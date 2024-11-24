@@ -52,7 +52,8 @@ def run_ble_serial():
     terminal = 'konsole -e'
     binary = 'ble-serial'
     mac = '20:91:48:DF:76:D9'
-    return subprocess.run(f'{terminal} {binary} -d {mac} -v', 
+    mtu = 20
+    return subprocess.run(f'{terminal} {binary} -d {mac} -v --mtu {mtu}', 
         shell=True, check=True)
 
 def signal_serial_end():
