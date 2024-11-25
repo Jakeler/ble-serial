@@ -21,6 +21,11 @@ def read_serial(port: str, conn_baud: int, expected_data: bytes):
     print(f'Completed read {len(buffer)} bytes in {tt:.3f} s')
     print(f'Rate {rate:.2f} byte/s = {rate*8:.0f} bit/s = {rate*10:.0f} baud')
 
+    with open('/tmp/base.md', 'wb') as f:
+        f.write(expected_data)
+    with open('/tmp/buffer.md', 'wb') as f:
+        f.write(buffer)
+
     return {
         'valid': expected_data == buffer,
         'loss_percent': (1 - len(buffer) / len(expected_data)) * 100,
