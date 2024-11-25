@@ -60,6 +60,7 @@ class Main():
             logging.info('Running main loop!')
             main_tasks = {
                 asyncio.create_task(self.bt.send_loop()),
+                asyncio.create_task(self.bt.check_loop()),
                 asyncio.create_task(self.uart.run_loop())
             }
             done, pending = await asyncio.wait(main_tasks, return_when=asyncio.FIRST_COMPLETED)

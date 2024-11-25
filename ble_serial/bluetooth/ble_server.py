@@ -22,6 +22,7 @@ class BLE_server(BLE_interface):
         self.server = BlessServer(name=local_name) # loop=asyncio.get_event_loop())
         self.server.read_request_func = self.handle_incoming_read
         self.server.write_request_func = self.handle_incoming_write
+        self.connected = False
 
     async def start(self, timeout: float):
         # logging.info(f'Trying to start with {addr_str}')
@@ -91,7 +92,17 @@ class BLE_server(BLE_interface):
             # Mark as ready to read
             self.data_read_done.clear()
             self.server.update_value(self.service.uuid, self.read_char.uuid)
-        await server.stop()
+        await self.server.stop()
+
+    async def check_loop(self):
+        while True:
+            await asyncio.sleep(1)
+        
+            advertising = await self.server.is_advertising()
+            if self.connected != await self.server.is_connected():
+                self.connected = not self.connected
+                logging.info('New BLE client connected' if self.connected else 'BLE client disconnected')
+            logging.debug(f'{advertising=} {self.connected=}')
 
     def stop_loop(self):
         logging.info('Stopping Bluetooth event loop')
