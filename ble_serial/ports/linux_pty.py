@@ -17,7 +17,14 @@ class UART(ISerial):
         tty.setraw(self._controller_fd, termios.TCSANOW)
 
         self.symlink = symlink
-        os.symlink(self.endpoint_path, self.symlink)
+        try:
+            os.symlink(self.endpoint_path, self.symlink)
+        except FileExistsError:
+            logging.error(
+                f'Port "{self.symlink}" already exists! '
+                'Please specify a new port (with -p) or delete (rm) the port file'
+                ' if no other ble-serial is currently using it.')
+            raise
         logging.info(f'Port endpoint created on {self.symlink} -> {self.endpoint_path}')
     
     def set_receiver(self, callback):
