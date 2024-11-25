@@ -109,6 +109,10 @@ class BLE_client(BLE_interface):
                 continue
             logging.debug(f'Sending {data}')
             await self.dev.write_gatt_char(self.write_char, data)
+    
+    async def check_loop(self):
+        while True:
+            await asyncio.sleep(1)
 
     def stop_loop(self):
         logging.info('Stopping Bluetooth event loop')
