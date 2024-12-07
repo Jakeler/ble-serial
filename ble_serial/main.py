@@ -95,5 +95,5 @@ class Main():
 
 def launch():
     args = cli.parse_args()
-    setup_logger(args.verbose, args.gap_role)
+    setup_logger(args.verbose, args.gap_role, args.gap_name)
     Main(args).start()

@@ -20,7 +20,7 @@ def parse_args() -> Namespace:
     dev_group.add_argument('-g', '--role', dest='gap_role', required=False, default='client', choices=['server', 'client'],
         help='Operate as BLE role: client (BLE central), server (BLE peripheral)')
     dev_group.add_argument('-n', '--name', dest='gap_name', required=False,
-        help='Custom disply name in BLE server mode, uses "BLE Serial Server {PID}" otherwise.')
+        help='Custom disply name in BLE server mode, uses "BLE Serial Server {PID}" otherwise. Prefix for logs lines in all modes.')
     dev_group.add_argument('-d', '--dev', dest='device', required=False,
         help='BLE device address to connect (hex format, can be separated by colons)')
     dev_group.add_argument('-a', '--address-type', dest='addr_type', required=False, choices=['public', 'random'], default='public',
