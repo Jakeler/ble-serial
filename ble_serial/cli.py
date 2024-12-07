@@ -65,6 +65,8 @@ def parse_args() -> Namespace:
 
 
 def client_checks(parser: ArgumentParser, args: Namespace):
+    if args.gap_role != 'client':
+        return # not applicable
     if not args.device and not args.service_uuid:
         parser.error('at least one of -d/--dev and -s/--service-uuid required')
 
