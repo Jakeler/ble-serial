@@ -41,7 +41,7 @@ class BLE_server(BLE_interface):
 
         await self.server.add_new_service(self.service_uuid)
         self.service = self.server.get_service(self.service_uuid)
-        logging.info(f'Service {str(self.service)}')
+        logging.info(f'Service {self.service_uuid}')
 
         if self.write_enabled:
             # self.write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
