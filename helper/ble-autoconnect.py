@@ -7,15 +7,18 @@ if a known device is found. See `autoconnect.ini` for configuration.
 import asyncio
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
-
-import subprocess
 import signal
 import argparse
 import configparser
 import logging
 
-async def run_tool(conf_section: dict):
-    await scanner.stop()
+async def run_tool(conf_section: dict, lock_id: str):
+    logging.info(f'{locked_devices}')
+    if lock_id in locked_devices:
+        return # already running for this device
+    
+    locked_devices.append(lock_id)
+    loop.create_task(pause_scan(args.timeout))
 
     params = [conf_section['executable']] # binary name before args
     for key, val in conf_section.items():
@@ -26,22 +29,32 @@ async def run_tool(conf_section: dict):
     logging.info(params)
 
     # Run target, passthrough stdout/stderr
-    proc = subprocess.run(params)
-    logging.debug(f'-> target exit code: {proc.returncode}')
+    proc = await asyncio.subprocess.create_subprocess_exec(*params)
+    await proc.communicate()
+    logging.info(f'-> target exit code: {proc.returncode}')
 
     # Restart scanner
-    await scanner.start()
+    locked_devices.remove(lock_id)
 
 
-def detection_callback(device: BLEDevice, advertisement_data):
-    logging.info(f'{device.address} = {device.name} (RSSI: {device.rssi})')
+def detection_callback(device: BLEDevice, adv_data):
+    logging.info(f'{device.address} = {adv_data.local_name} (RSSI: {adv_data.rssi}) Services={adv_data.service_uuids}')
 
     if device.address in config:
         section = config[device.address]
         logging.info(f'Found {device.address} in config!')
-        loop.create_task(run_tool(section))
+        if int(adv_data.rssi) <= args.min_rssi:
+            logging.info('Ignoring device because of low rssi')
+            return # device not actually availible
+        loop.create_task(run_tool(section, device.address))
     else:
         logging.debug('-> Unknown device')
+
+# Pause is needed to receive the advertisment in the recently started ble-serial otherwise autoconnect captures all
+async def pause_scan(secs: int):
+    await scanner.stop()
+    await asyncio.sleep(secs)
+    await scanner.start()
 
 def stop(signal, stackframe=None):
     logging.warning(f'signal {signal} received. Stopping scan!')
@@ -49,7 +62,6 @@ def stop(signal, stackframe=None):
     loop.stop()
 
 async def start_scan():
-    scanner.register_detection_callback(detection_callback)
     await scanner.start()
 
     signal.signal(signal.SIGINT, stop)
@@ -62,17 +74,22 @@ if __name__ == "__main__":
             help='Path to a INI file with device configs')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
             help='Increase log level from info to debug')
+    parser.add_argument('-m', '--min-rssi', dest='min_rssi', default=-127, type=int,
+            help='Ignore devices with weaker signal strength')
+    parser.add_argument('-t', '--timeout', dest='timeout', default=10, type=int,
+            help='Pause scan for specifed second amount to let ble-serial start up')
     args = parser.parse_args()
 
-    logging.basicConfig(format='[%(levelname)s] %(message)s', 
+    logging.basicConfig(format='[AUTOCONNECT] %(asctime)s | %(levelname)s | %(message)s', 
         level=logging.DEBUG if args.verbose else logging.INFO)
 
     config = configparser.ConfigParser(allow_no_value=True)
     with open(args.config, 'r') as f: # do it like this to detect non existand files
         config.read_file(f)
 
-    scanner = BleakScanner()
+    scanner = BleakScanner(detection_callback)
+    locked_devices = [] # list of uuids
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
     loop.create_task(start_scan())
     loop.run_forever()
