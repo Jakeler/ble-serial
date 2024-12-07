@@ -6,26 +6,20 @@ import os, logging, asyncio
 from typing import Optional
 
 class BLE_server(BLE_interface):
-    def __init__(self, adapter: str, service_uuid: str, write_uuid: str, read_uuid: str, gap_name: str):
+    def __init__(self, adapter: str, gap_name: str):
         self._send_queue = asyncio.Queue()
         self.data_read_done = asyncio.Event()
-
-        self.adapter = adapter # unused / not implemented in bless
-        self.gap_name = gap_name
-        self.service_uuid = service_uuid
-        self.write_uuid = check_fill_empty(service_uuid, write_uuid, 'write')
-        self.read_uuid = check_fill_empty(service_uuid, read_uuid, 'read')
         
         # Workaround for bluez not sending constant names, PID always changes,
         # if custom name has not been provided
-        if self.gap_name is None:
-            local_name = f'BLE Serial Server {os.getpid()}'
+        if gap_name is None:
+            self.local_name = f'BLE Serial Server {os.getpid()}'
         else:
-            local_name = self.gap_name
+            self.local_name = gap_name
 
-        logging.info(f'Name/ID: {local_name}')
+        logging.info(f'Name/ID: {self.local_name}')
 
-        self.server = BlessServer(name=local_name) # loop=asyncio.get_event_loop())
+        self.server = BlessServer(name=self.local_name, adapter=adapter) # loop=asyncio.get_event_loop())
         self.server.read_request_func = self.handle_incoming_read
         self.server.write_request_func = self.handle_incoming_write
         self.connected = False
@@ -37,9 +31,13 @@ class BLE_server(BLE_interface):
         logging.info(f'Server startup {"failed!" if success == False else "successful"}')
 
 
-    async def setup_chars(self, mode: str):
+    async def setup_chars(self, service_uuid: str, write_uuid: str, read_uuid: str, mode: str, write_response_required: bool):
         self.read_enabled = 'r' in mode
         self.write_enabled = 'w' in mode
+
+        self.service_uuid = service_uuid
+        self.write_uuid = check_fill_empty(service_uuid, write_uuid, 'write')
+        self.read_uuid = check_fill_empty(service_uuid, read_uuid, 'read')
 
         await self.server.add_new_service(self.service_uuid)
         self.service = self.server.get_service(self.service_uuid)
@@ -47,7 +45,9 @@ class BLE_server(BLE_interface):
 
         if self.write_enabled:
             # self.write_uuid = "0000ffe1-0000-1000-8000-00805f9b34fb"
-            char_flags = GATTCharacteristicProperties.write | GATTCharacteristicProperties.write_without_response
+            char_flags = (
+                GATTCharacteristicProperties.write if write_response_required else
+                GATTCharacteristicProperties.write_without_response)
             permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
             await self.server.add_new_characteristic(self.service_uuid, self.write_uuid,
                 char_flags, None, permissions)

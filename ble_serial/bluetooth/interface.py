@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class BLE_interface(ABC):
     @abstractmethod
-    def __init__(self, adapter: str, service_uuid: str, write_uuid: str, read_uuid: str):
+    def __init__(self, adapter: str, instance_identifier: str):
         pass
 
     @abstractmethod
