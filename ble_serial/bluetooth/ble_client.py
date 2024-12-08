@@ -1,25 +1,27 @@
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from ble_serial.bluetooth.constants import ble_chars
-import logging
-import asyncio
+from ble_serial.bluetooth.interface import BLE_interface
+import logging, asyncio
 from typing import Optional, List
 
-class BLE_interface():
-    def __init__(self, adapter: str, service: str):
+class BLE_client(BLE_interface):
+    def __init__(self, adapter: str, id: str = None):
         self._send_queue = asyncio.Queue()
 
-        self.scan_args = dict(adapter=adapter)
-        if service:
-            self.scan_args['service_uuids'] = [service]
+        self.adapter = adapter
 
-    async def connect(self, addr_str: str, addr_type: str, timeout: float):
+    async def connect(self, addr_str: str, addr_type: str, service_uuid: str, timeout: float):
+        scan_args = dict(adapter=self.adapter)
+        if service_uuid:
+            scan_args['service_uuids'] = [service_uuid]
+
         if addr_str:
-            device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **self.scan_args)
+            device = await BleakScanner.find_device_by_address(addr_str, timeout=timeout, **scan_args)
         else:
             logging.warning('Picking first device with matching service, '
                 'consider passing a specific device address, especially if there could be multiple devices')
-            device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **self.scan_args)
+            device = await BleakScanner.find_device_by_filter(lambda dev, ad: True, timeout=timeout, **scan_args)
 
         assert device, 'No matching device found!'
 
@@ -105,6 +107,10 @@ class BLE_interface():
                 continue
             logging.debug(f'Sending {data}')
             await self.dev.write_gatt_char(self.write_char, data, self.write_response_required)
+    
+    async def check_loop(self):
+        while True:
+            await asyncio.sleep(1)
 
     def stop_loop(self):
         logging.info('Stopping Bluetooth event loop')

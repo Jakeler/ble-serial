@@ -6,15 +6,16 @@ async def main():
     ADAPTER = "hci0"
     SCAN_TIME = 5 #seconds
     SERVICE_UUID = None # optional filtering
+    VERBOSE = False
 
     devices = await scanner.scan(ADAPTER, SCAN_TIME, SERVICE_UUID)
 
     print() # newline
-    scanner.print_list(devices)
+    scanner.print_list(devices, VERBOSE)
 
-    # manual indexing
-    print(devices[0].name, devices[0].address)
-
+    # manual indexing of devices dict
+    dev_list = list(devices.values())
+    print(dev_list[0])
 
     ### deep scan get's services/characteristics
     DEVICE = "20:91:48:4C:4C:54"

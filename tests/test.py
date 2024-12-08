@@ -6,7 +6,7 @@ from hm11_at_config import set_module_baud
 from serial_handler import read_serial, write_serial, run_ble_serial, signal_serial_end
 
 # Interfaces
-PORT_UART = '/dev/ttyUSB0'
+PORT_UART = '/tmp/ttyUSB'
 PORT_BLE = '/tmp/ttyBLE'
 
 with open('../README.md', 'rb') as f:
@@ -14,6 +14,7 @@ with open('../README.md', 'rb') as f:
     # print(CONTENT)
 
 # CONTENT = CONTENT[:1000]
+CONTENT *= 10 # more data for fast connections
 
 class Dir:
     _ports = [
@@ -66,28 +67,30 @@ def run_test(exc: TPE, log: Log, dir: Dir, baud: int, packet_size: int, delay: f
     print(result, end='\n\n')
 
 
-baud_to_test = [9600, 19200, 57600, 115200, 230400]
+# baud_to_test = [9600, 19200, 57600, 115200, 230400]
+baud_to_test = [1] # dummy value for socat/pty
 prev = baud_to_test[0]
 
 # PACKET_SIZE = [4, 16, 64]
-PACKET_SIZE = [32]
-BYTE_DELAY = [0, 1/2000, 1/1000, 1/500] # bytes/sec
+PACKET_SIZE = [16,128,1024]
+# BYTE_DELAY = [0, 1/2000, 1/1000, 1/500] # bytes/sec
+BYTE_DELAY = [0, 1/100000, 1/10000] # bytes/sec
 
 if __name__ == "__main__":
     # Reset to start baud after fail
     # set_module_baud(PORT_UART, 19200, 9600)
     # os.remove(PORT_BLE)
 
-    log = Log('results/log.csv')
+    log = Log('results/log_socat_tcp.csv')
 
     for baud in baud_to_test:
         print(f'\nTesting baud: {baud}')
 
-        set_module_baud(PORT_UART, prev, baud)
+        # set_module_baud(PORT_UART, prev, baud)
         prev = baud
 
         with TPE(max_workers=3) as executor:
-            futb = executor.submit(run_ble_serial)
+            # futb = executor.submit(run_ble_serial)
             sleep(3)
 
             for size in PACKET_SIZE:
@@ -95,7 +98,7 @@ if __name__ == "__main__":
                     run_test(executor, log, Dir.BLE_UART(), baud, size, size*delay)
                     run_test(executor, log, Dir.UART_BLE(), baud, size, size*delay)
 
-            signal_serial_end()
+            # signal_serial_end()
 
-    set_module_baud(PORT_UART, prev, baud_to_test[0])
+    # set_module_baud(PORT_UART, prev, baud_to_test[0])
     log.close()

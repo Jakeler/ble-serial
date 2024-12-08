@@ -381,12 +381,15 @@ usage: ble-autoconnect.py [-h] [-c CONFIG] [-v]
 
 Service to automatically connect with devices that get available.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -c CONFIG, --config CONFIG
                         Path to a INI file with device configs (default: autoconnect.ini)
   -v, --verbose         Increase log level from info to debug (default: False)
-
+  -m MIN_RSSI, --min-rssi MIN_RSSI
+                        Ignore devices with weaker signal strength (default: -127)
+  -t TIMEOUT, --timeout TIMEOUT
+                        Pause scan for specifed second amount to let ble-serial start up (default: 10)
 ```
 This continuously scans for devices and compares them with the configuration, it then automatically starts up `ble-serial` (or other tools) if a known device is detected.
 This should bring similar convenience like USB adapters, just turn the BLE device on and
