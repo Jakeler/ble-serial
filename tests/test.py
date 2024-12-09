@@ -19,10 +19,14 @@ def tpe():
 def test_data(request):
     return gen_test_data(request.param)
 
-@pytest.fixture(scope="module", params=[19200])
-def hm10_serial(request):
-    reset_baud(SerialPath.uart)
-    set_module_baud(SerialPath.uart, 9600, request.param)
+@pytest.fixture(scope="module", params=[19200, 38400])
+def baud(request):
+    return request.param
+
+@pytest.fixture(scope="module")
+def hm10_serial(baud):
+    reset_baud(SerialPath.uart) # resets to 9600
+    set_module_baud(SerialPath.uart, 9600, baud)
 
 
 @pytest.fixture(params=[20])
@@ -39,8 +43,7 @@ def hm10_ble_client(tpe, request):
     (SerialPath.uart, SerialPath.ble),
     (SerialPath.ble, SerialPath.uart),
 ])
-def test_uart_server(tpe: TPE, hm10_serial, hm10_ble_client, test_data, write_path, read_path):
-    baud = 19200
+def test_uart_server(tpe: TPE, hm10_serial, baud, hm10_ble_client, test_data, write_path, read_path):
     packet_size = 64
     delay = packet_size*1/1000
 
