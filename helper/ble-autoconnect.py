@@ -77,7 +77,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--min-rssi', dest='min_rssi', default=-127, type=int,
             help='Ignore devices with weaker signal strength')
     parser.add_argument('-t', '--timeout', dest='timeout', default=10, type=int,
-            help='Pause scan for specifed second amount to let ble-serial start up')
+            help='Pause scan for seconds amount to let ble-serial start up')
     args = parser.parse_args()
 
     logging.basicConfig(format='[AUTOCONNECT] %(asctime)s | %(levelname)s | %(message)s', 

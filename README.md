@@ -184,8 +184,8 @@ As you can see, here the read/notify UUID is `00000006-af0e-4c28-95a4-4509fd91e0
 The `ble-serial` tool itself has a few more options:
 ```console
 $ ble_serial -h
-sage: ble-serial [-h] [-v] [-t SEC] [-i ADAPTER] [-m MTU] [-g {server,client}] [-n GAP_NAME] [-d DEVICE] [-a {public,random}] [-s SERVICE_UUID] [-r READ_UUID] [-w WRITE_UUID] [--permit {ro,rw,wo}] [--write-with-response] [-l FILENAME] [-b] [-p PORT] [--expose-tcp-host TCP_HOST]
-                  [--expose-tcp-port TCP_PORT]
+usage: ble-serial [-h] [-v] [-t SEC] [-i ADAPTER] [-m MTU] [-g {server,client}] [-n GAP_NAME] [-d DEVICE] [-a {public,random}] [-s SERVICE_UUID] [-r READ_UUID] [-w WRITE_UUID] [--permit {ro,rw,wo}] [--write-with-response]
+                  [-l FILENAME] [-b] [-p PORT] [--expose-tcp-host TCP_HOST] [--expose-tcp-port TCP_PORT]
 
 Create virtual serial ports from BLE devices.
 
@@ -204,7 +204,7 @@ device parameters:
   -g {server,client}, --role {server,client}
                         Operate as BLE role: client (BLE central), server (BLE peripheral) (default: client)
   -n GAP_NAME, --name GAP_NAME
-                        Custom disply name in BLE server mode, uses "BLE Serial Server {PID}" otherwise. Prefix for logs lines in all modes. (default: None)
+                        Custom display name in BLE server mode, uses "BLE Serial Server {PID}" otherwise. Prefix for logs lines in all modes. (default: None)
   -d DEVICE, --dev DEVICE
                         BLE device address to connect (hex format, can be separated by colons) (default: None)
   -a {public,random}, --address-type {public,random}
@@ -212,12 +212,12 @@ device parameters:
   -s SERVICE_UUID, --service-uuid SERVICE_UUID
                         In "client" mode - service UUID used for scanning of potential devices. In "server" mode - service UUID used to provide read/write GATT characteristics. (default: None)
   -r READ_UUID, --read-uuid READ_UUID
-                        The GATT characteristic to subscribe to notifications to read the serial data. If omitted, will be automaticvally generated based on service UUID (default: None)
+                        The GATT characteristic to subscribe to notifications to read the serial data. If omitted, will be auto generated based on service UUID (default: None)
   -w WRITE_UUID, --write-uuid WRITE_UUID
-                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out. If omitted, will be automaticvally generated based on service UUID (default: None)
+                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out. If omitted, will be auto generated based on service UUID (default: None)
   --permit {ro,rw,wo}   Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo) (default: rw)
   --write-with-response
-                        Wait for a response from the remote device before sending more. Better data integrity, higher latency and less througput (default: False)
+                        Wait for a response from the remote device before sending more. Better data integrity, higher latency and less throughput (default: False)
 ```
 
 In any case it needs to know which device to connect, the simple and most reliable way to specify this is by device address/id:
@@ -439,7 +439,7 @@ options:
   -m MIN_RSSI, --min-rssi MIN_RSSI
                         Ignore devices with weaker signal strength (default: -127)
   -t TIMEOUT, --timeout TIMEOUT
-                        Pause scan for specifed second amount to let ble-serial start up (default: 10)
+                        Pause scan for seconds amount to let ble-serial start up (default: 10)
 ```
 This continuously scans for devices and compares them with the configuration, 
 then automatically starts up `ble-serial` (or other tools) if a known device is detected.
