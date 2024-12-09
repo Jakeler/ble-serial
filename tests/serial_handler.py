@@ -3,7 +3,7 @@ from time import sleep, perf_counter
 
 def read_serial(port: str, conn_baud: int, expected_size: int):
     buffer = bytearray()
-    timeout = 3.0
+    timeout = 4.0
 
     with Serial(port, conn_baud, timeout=timeout) as ser:
         print(f'Connected to read serial {port}:{conn_baud}')

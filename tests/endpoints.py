@@ -4,5 +4,5 @@ class SerialPath:
 
 class IP_TCP:
     rtl8761_usb = 'localhost'
-    intel8265_zenbook = '192.168.1.86'
+    intel8265_zenbook = '192.168.1.97'
 # default port 4444

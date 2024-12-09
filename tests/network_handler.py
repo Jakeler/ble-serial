@@ -3,7 +3,7 @@ from time import sleep, perf_counter
 
 def read_tcp(addr: str, port: int, expected_size: int) -> dict:
     buffer = bytearray()
-    timeout = 1.0
+    timeout = 8.0
 
     with socket.socket() as test_client:
         test_client.settimeout(timeout)

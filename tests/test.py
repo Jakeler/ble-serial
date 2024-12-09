@@ -16,7 +16,7 @@ from endpoints import SerialPath, IP_TCP
 def tpe():
     return TPE(max_workers=3)
 
-@pytest.fixture(params=[5*1024])
+@pytest.fixture(params=[16*1024])
 def test_data(request):
     return gen_test_data(request.param)
 
@@ -47,6 +47,15 @@ def hm10_ble_client_tcp(tpe, request):
     sleep(3) # wait for teardown
 
 
+@pytest.fixture(params=[64])
+def server_ble_client_remote_tcp(tpe, request):
+    futb = tpe.submit(run_ble_serial, MacAddr.intel8265_zenbook, request.param, tcp=True)
+    sleep(5) # wait for startup
+    yield
+    signal_serial_end()
+    sleep(3) # wait for teardown
+
+
 @pytest.mark.parametrize(
     "write_path, read_path", [
     (SerialPath.uart, SerialPath.ble),
@@ -54,7 +63,7 @@ def hm10_ble_client_tcp(tpe, request):
 ])
 def test_uart_server(tpe: TPE, hm10_serial, baud, hm10_ble_client, test_data, write_path, read_path):
     packet_size = 64
-    delay = packet_size*1/500
+    delay = packet_size*1/1000
 
     futw = tpe.submit(write_serial, write_path, baud, test_data, packet_size, delay)
     futr = tpe.submit(read_serial, read_path, baud, len(test_data))
@@ -75,5 +84,21 @@ def test_uart_server_tcp(tpe: TPE, hm10_serial, baud, hm10_ble_client_tcp, test_
 
     futw = tpe.submit(write_tcp, IP_TCP.rtl8761_usb, 4444, test_data, packet_size, delay)
     futr = tpe.submit(read_serial, SerialPath.uart, baud, len(test_data))
+    result = eval_rx(**futr.result(), expected_data=test_data)
+    print(result)
+
+
+@pytest.mark.parametrize(
+    "write_ip, read_ip", [
+    (IP_TCP.rtl8761_usb, IP_TCP.intel8265_zenbook),
+    (IP_TCP.intel8265_zenbook, IP_TCP.rtl8761_usb),
+])
+def test_remote_server_tcp(tpe: TPE, server_ble_client_remote_tcp, test_data, write_ip, read_ip):
+    packet_size = 64
+    delay = packet_size*1/3600
+
+    futw = tpe.submit(write_tcp, write_ip, 4444, test_data, packet_size, delay)
+    futr = tpe.submit(read_tcp, read_ip, 4444, len(test_data))
+
     result = eval_rx(**futr.result(), expected_data=test_data)
     print(result)
