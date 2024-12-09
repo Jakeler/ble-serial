@@ -4,6 +4,7 @@ from time import sleep
 
 from hm11_at_config import reset_baud, set_module_baud
 from serial_handler import read_serial, write_serial
+from network_handler import read_tcp, write_tcp
 from process_handler import run_ble_serial, signal_serial_end
 from tools import eval_rx, Log, gen_test_data
 
@@ -19,7 +20,7 @@ def tpe():
 def test_data(request):
     return gen_test_data(request.param)
 
-@pytest.fixture(scope="module", params=[19200, 38400])
+@pytest.fixture(scope="module", params=[57600])
 def baud(request):
     return request.param
 
@@ -37,6 +38,14 @@ def hm10_ble_client(tpe, request):
     signal_serial_end()
     sleep(3) # wait for teardown
 
+@pytest.fixture(params=[20])
+def hm10_ble_client_tcp(tpe, request):
+    futb = tpe.submit(run_ble_serial, MacAddr.hm10_serial, request.param, tcp=True)
+    sleep(3) # wait for startup
+    yield
+    signal_serial_end()
+    sleep(3) # wait for teardown
+
 
 @pytest.mark.parametrize(
     "write_path, read_path", [
@@ -45,10 +54,26 @@ def hm10_ble_client(tpe, request):
 ])
 def test_uart_server(tpe: TPE, hm10_serial, baud, hm10_ble_client, test_data, write_path, read_path):
     packet_size = 64
-    delay = packet_size*1/1000
+    delay = packet_size*1/500
 
     futw = tpe.submit(write_serial, write_path, baud, test_data, packet_size, delay)
     futr = tpe.submit(read_serial, read_path, baud, len(test_data))
 
+    result = eval_rx(**futr.result(), expected_data=test_data)
+    print(result)
+
+
+def test_uart_server_tcp(tpe: TPE, hm10_serial, baud, hm10_ble_client_tcp, test_data):
+    packet_size = 64
+    delay = packet_size*1/1000
+
+    futw = tpe.submit(write_serial, SerialPath.uart, baud, test_data, packet_size, delay)
+    futr = tpe.submit(read_tcp, IP_TCP.rtl8761_usb, 4444, len(test_data))
+    result = eval_rx(**futr.result(), expected_data=test_data)
+    print(result)
+    sleep(5)
+
+    futw = tpe.submit(write_tcp, IP_TCP.rtl8761_usb, 4444, test_data, packet_size, delay)
+    futr = tpe.submit(read_serial, SerialPath.uart, baud, len(test_data))
     result = eval_rx(**futr.result(), expected_data=test_data)
     print(result)
