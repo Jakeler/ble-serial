@@ -1,101 +1,104 @@
+import pytest
 from concurrent.futures import ThreadPoolExecutor as TPE
-import csv
 from time import sleep
 
-from hm11_at_config import set_module_baud
-from serial_handler import read_serial, write_serial, run_ble_serial, signal_serial_end
+from hm11_at_config import reset_baud, set_module_baud
+from serial_handler import read_serial, write_serial
+from network_handler import read_tcp, write_tcp
+from process_handler import run_ble_serial, signal_serial_end
+from tools import eval_rx, Log, gen_test_data
 
-# Interfaces
-PORT_UART = '/dev/ttyUSB0'
-PORT_BLE = '/tmp/ttyBLE'
-
-with open('../README.md', 'rb') as f:
-    CONTENT = f.read()
-    # print(CONTENT)
-
-# CONTENT = CONTENT[:1000]
-
-class Dir:
-    _ports = [
-        (PORT_BLE, PORT_UART),
-        (PORT_UART, PORT_BLE),
-    ]
-
-    @classmethod
-    def BLE_UART(cls):
-        return cls(0)
-
-    @classmethod
-    def UART_BLE(cls):
-        return cls(1)
-
-    def __init__(self, dir: int):
-        self.id = dir
-        self.write = self._ports[dir][0]
-        self.read = self._ports[dir][1]
-
-    def __str__(self):
-        return ('BLE >> UART', 'UART >> BLE')[self.id]
-
-class Log:
-    def __init__(self, filename: str):
-        fieldnames = ['dir', 'rated_baud', 'packet_size', 'delay', 
-            'valid', 'loss_percent', 'rx_bits', 'rx_baud']
-        self.csvfile = open(filename, 'w', newline='')
-        self.writer = csv.DictWriter(self.csvfile, fieldnames=fieldnames)
-        self.writer.writeheader()
-
-    def write(self, data: dict):
-        self.writer.writerow(data)
-
-    def close(self):
-        self.csvfile.close()
-
-def run_test(exc: TPE, log: Log, dir: Dir, baud: int, packet_size: int, delay: float):
-    futw = executor.submit(write_serial, dir.write, baud, CONTENT, packet_size, delay)
-    futr = executor.submit(read_serial, dir.read, baud, CONTENT)
-
-    result = futr.result()
-    result.update({
-        'dir': str(dir),
-        'rated_baud': baud,
-        'packet_size': packet_size,
-        'delay': delay,
-    })
-    log.write(result)
-    print(result, end='\n\n')
+from device_id import MacAddr
+from endpoints import SerialPath, IP_TCP
 
 
-baud_to_test = [9600, 19200, 57600, 115200, 230400]
-prev = baud_to_test[0]
+@pytest.fixture
+def tpe():
+    return TPE(max_workers=3)
 
-# PACKET_SIZE = [4, 16, 64]
-PACKET_SIZE = [32]
-BYTE_DELAY = [0, 1/2000, 1/1000, 1/500] # bytes/sec
+@pytest.fixture(params=[16*1024])
+def test_data(request):
+    return gen_test_data(request.param)
 
-if __name__ == "__main__":
-    # Reset to start baud after fail
-    # set_module_baud(PORT_UART, 19200, 9600)
-    # os.remove(PORT_BLE)
+@pytest.fixture(scope="module", params=[57600])
+def baud(request):
+    return request.param
 
-    log = Log('results/log.csv')
+@pytest.fixture(scope="module")
+def hm10_serial(baud):
+    reset_baud(SerialPath.uart) # resets to 9600
+    set_module_baud(SerialPath.uart, 9600, baud)
 
-    for baud in baud_to_test:
-        print(f'\nTesting baud: {baud}')
 
-        set_module_baud(PORT_UART, prev, baud)
-        prev = baud
+@pytest.fixture(params=[20])
+def hm10_ble_client(tpe, request):
+    futb = tpe.submit(run_ble_serial, MacAddr.hm10_serial, request.param)
+    sleep(3) # wait for startup
+    yield
+    signal_serial_end()
+    sleep(3) # wait for teardown
 
-        with TPE(max_workers=3) as executor:
-            futb = executor.submit(run_ble_serial)
-            sleep(3)
+@pytest.fixture(params=[20])
+def hm10_ble_client_tcp(tpe, request):
+    futb = tpe.submit(run_ble_serial, MacAddr.hm10_serial, request.param, tcp=True)
+    sleep(3) # wait for startup
+    yield
+    signal_serial_end()
+    sleep(3) # wait for teardown
 
-            for size in PACKET_SIZE:
-                for delay in BYTE_DELAY:
-                    run_test(executor, log, Dir.BLE_UART(), baud, size, size*delay)
-                    run_test(executor, log, Dir.UART_BLE(), baud, size, size*delay)
 
-            signal_serial_end()
+@pytest.fixture(params=[64])
+def server_ble_client_remote_tcp(tpe, request):
+    futb = tpe.submit(run_ble_serial, MacAddr.intel8265_zenbook, request.param, tcp=True)
+    sleep(5) # wait for startup
+    yield
+    signal_serial_end()
+    sleep(3) # wait for teardown
 
-    set_module_baud(PORT_UART, prev, baud_to_test[0])
-    log.close()
+
+@pytest.mark.parametrize(
+    "write_path, read_path", [
+    (SerialPath.uart, SerialPath.ble),
+    (SerialPath.ble, SerialPath.uart),
+])
+def test_uart_server(tpe: TPE, hm10_serial, baud, hm10_ble_client, test_data, write_path, read_path):
+    packet_size = 64
+    delay = packet_size*1/1000
+
+    futw = tpe.submit(write_serial, write_path, baud, test_data, packet_size, delay)
+    futr = tpe.submit(read_serial, read_path, baud, len(test_data))
+
+    result = eval_rx(**futr.result(), expected_data=test_data)
+    print(result)
+
+
+def test_uart_server_tcp(tpe: TPE, hm10_serial, baud, hm10_ble_client_tcp, test_data):
+    packet_size = 64
+    delay = packet_size*1/1000
+
+    futw = tpe.submit(write_serial, SerialPath.uart, baud, test_data, packet_size, delay)
+    futr = tpe.submit(read_tcp, IP_TCP.rtl8761_usb, 4444, len(test_data))
+    result = eval_rx(**futr.result(), expected_data=test_data)
+    print(result)
+    sleep(5)
+
+    futw = tpe.submit(write_tcp, IP_TCP.rtl8761_usb, 4444, test_data, packet_size, delay)
+    futr = tpe.submit(read_serial, SerialPath.uart, baud, len(test_data))
+    result = eval_rx(**futr.result(), expected_data=test_data)
+    print(result)
+
+
+@pytest.mark.parametrize(
+    "write_ip, read_ip", [
+    (IP_TCP.rtl8761_usb, IP_TCP.intel8265_zenbook),
+    (IP_TCP.intel8265_zenbook, IP_TCP.rtl8761_usb),
+])
+def test_remote_server_tcp(tpe: TPE, server_ble_client_remote_tcp, test_data, write_ip, read_ip):
+    packet_size = 64
+    delay = packet_size*1/3600
+
+    futw = tpe.submit(write_tcp, write_ip, 4444, test_data, packet_size, delay)
+    futr = tpe.submit(read_tcp, read_ip, 4444, len(test_data))
+
+    result = eval_rx(**futr.result(), expected_data=test_data)
+    print(result)

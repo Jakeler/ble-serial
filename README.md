@@ -14,7 +14,7 @@ $ pip install ble-serial
 
 Now you should have 2 new scripts: `ble-scan` and the main `ble-serial`.
 
-On Linux/Mac you are ready now and can directly jump to the usage section!
+On Linux/Mac you are ready now and can directly jump to the [usage](#usage) section!
 For Windows follow the [additional steps below](#additional-steps-for-windows).
 
 ### From source (for developers)
@@ -184,7 +184,8 @@ As you can see, here the read/notify UUID is `00000006-af0e-4c28-95a4-4509fd91e0
 The `ble-serial` tool itself has a few more options:
 ```console
 $ ble_serial -h
-usage: __main__.py [-h] [-v] [-t SEC] [-i ADAPTER] [-m MTU] [-d DEVICE] [-a {public,random}] [-s SERVICE_UUID] [-w WRITE_UUID] [-r READ_UUID] [--permit {ro,rw,wo}] [-l FILENAME] [-b] [-p PORT] [--expose-tcp-host TCP_HOST] [--expose-tcp-port TCP_PORT]
+usage: ble-serial [-h] [-v] [-t SEC] [-i ADAPTER] [-m MTU] [-g {server,client}] [-n GAP_NAME] [-d DEVICE] [-a {public,random}] [-s SERVICE_UUID] [-r READ_UUID] [-w WRITE_UUID] [--permit {ro,rw,wo}] [--write-with-response]
+                  [-l FILENAME] [-b] [-p PORT] [--expose-tcp-host TCP_HOST] [--expose-tcp-port TCP_PORT]
 
 Create virtual serial ports from BLE devices.
 
@@ -200,19 +201,23 @@ connection parameters:
   -m MTU, --mtu MTU     Max. bluetooth packet data size in bytes used for sending (default: 20)
 
 device parameters:
+  -g {server,client}, --role {server,client}
+                        Operate as BLE role: client (BLE central), server (BLE peripheral) (default: client)
+  -n GAP_NAME, --name GAP_NAME
+                        Custom display name in BLE server mode, uses "BLE Serial Server {PID}" otherwise. Prefix for logs lines in all modes. (default: None)
   -d DEVICE, --dev DEVICE
                         BLE device address to connect (hex format, can be separated by colons) (default: None)
   -a {public,random}, --address-type {public,random}
                         BLE address type, only relevant on Windows, ignored otherwise (default: public)
   -s SERVICE_UUID, --service-uuid SERVICE_UUID
-                        The service used for scanning of potential devices (default: None)
-  -w WRITE_UUID, --write-uuid WRITE_UUID
-                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out (default: None)
+                        In "client" mode - service UUID used for scanning of potential devices. In "server" mode - service UUID used to provide read/write GATT characteristics. (default: None)
   -r READ_UUID, --read-uuid READ_UUID
-                        The GATT characteristic to subscribe to notifications to read the serial data (default: None)
+                        The GATT characteristic to subscribe to notifications to read the serial data. If omitted, will be auto generated based on service UUID (default: None)
+  -w WRITE_UUID, --write-uuid WRITE_UUID
+                        The GATT characteristic to write the serial data, you might use "ble-scan -d" to find it out. If omitted, will be auto generated based on service UUID (default: None)
   --permit {ro,rw,wo}   Restrict transfer direction on bluetooth: read only (ro), read+write (rw), write only (wo) (default: rw)
   --write-with-response
-                        Wait for a response from the remote device before sending more. Better data integrity, higher latency and less througput (default: False)
+                        Wait for a response from the remote device before sending more. Better data integrity, higher latency and less throughput (default: False)
 ```
 
 In any case it needs to know which device to connect, the simple and most reliable way to specify this is by device address/id:
@@ -291,6 +296,51 @@ $ cat demo.txt
 Per default it is transformed to hex bytes, use `-b`/`--binary` to log raw data, useful if your input is already ASCII etc.
 
 ## Advanced Usage
+### Bluetooth server
+Per default ble-serial operates in client (ble central) role and can connect to typical modules (ble peripheral) which define services and advertise itself.
+Since version 3.0 it's possible to swap these roles with `-g {server,client}`/`--role {server,client}`.
+
+#### Prerequisites
+Install extra dependencies with:
+```console
+$ pip install ble-serial[server]
+```
+and on Windows additionally (one not on pypi):
+```console
+$ pip install https://github.com/gwangyi/pysetupdi/archive/refs/heads/master.zip
+```
+
+#### Config and startup
+No external device argument is required in this mode, but you have to define the service and characteristics.
+```console
+$ ble-serial -g server -s 6e400001-b5a3-f393-e0a9-e50e24dcca9e
+17:02:23.860 | INFO | linux_pty.py: Port endpoint created on /tmp/ttyBLE -> /dev/pts/6
+17:02:23.860 | INFO | ble_server.py: Name/ID: BLE Serial Server 11296
+17:02:23.860 | INFO | ble_server.py: Listener set up
+17:02:23.860 | WARNING | uuid_helpers.py: No write uuid specified, derived from service 6e400001-b5a3-f393-e0a9-e50e24dcca9e -> 6e400002-b5a3-f393-e0a9-e50e24dcca9e
+17:02:23.860 | WARNING | uuid_helpers.py: No read uuid specified, derived from service 6e400001-b5a3-f393-e0a9-e50e24dcca9e -> 6e400003-b5a3-f393-e0a9-e50e24dcca9e
+17:02:23.864 | INFO | ble_server.py: Service 6e400001-b5a3-f393-e0a9-e50e24dcca9e
+17:02:23.864 | INFO | ble_server.py: Write characteristic: 6e400002-b5a3-f393-e0a9-e50e24dcca9e: Nordic UART RX
+17:02:23.864 | INFO | ble_server.py: Read characteristic: 6e400003-b5a3-f393-e0a9-e50e24dcca9e: Nordic UART TX
+17:02:23.893 | INFO | ble_server.py: Server startup successful
+17:02:23.893 | INFO | main.py: Running main loop!
+```
+It automatically derives all characteristics when only the service uuid is specified, the run above is equivalent to `-w 6e400002-b5a3-f393-e0a9-e50e24dcca9e` `-r 6e400003-b5a3-f393-e0a9-e50e24dcca9e`. Also the other arguments (name, mtu, logs, ports, tcp, etc.) are supported.
+
+#### Connection
+Works like with any other server via the device address. Note that mac address might change in every session depending on OS/platform and currently it's not possible to set or display this value.
+
+Using ble-serial as client on the other machine can solve this with service based selection:
+
+```console
+$ ble-serial -g client -s 6e400001-b5a3-f393-e0a9-e50e24dcca9e
+...
+17:27:26.069 | WARNING | ble_client.py: Picking first device with matching service, consider passing a specific device address, especially if there could be multiple devices
+17:27:27.685 | INFO | ble_client.py: Trying to connect with [MAC]: BLE Serial Server 11296
+```
+
+With a custom service it's also highly unlikely to accidentally connect a wrong device. So maybe use something else than the standard Nordic UART service and the warning can be ignored.
+
 ### TCP socket server
 Instead of the serial port emulation there is a also builtin raw tcp server since version 2.7:
 ```
@@ -381,16 +431,36 @@ usage: ble-autoconnect.py [-h] [-c CONFIG] [-v]
 
 Service to automatically connect with devices that get available.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -c CONFIG, --config CONFIG
                         Path to a INI file with device configs (default: autoconnect.ini)
   -v, --verbose         Increase log level from info to debug (default: False)
-
+  -m MIN_RSSI, --min-rssi MIN_RSSI
+                        Ignore devices with weaker signal strength (default: -127)
+  -t TIMEOUT, --timeout TIMEOUT
+                        Pause scan for seconds amount to let ble-serial start up (default: 10)
 ```
-This continuously scans for devices and compares them with the configuration, it then automatically starts up `ble-serial` (or other tools) if a known device is detected.
-This should bring similar convenience like USB adapters, just turn the BLE device on and
-the serial port shows up on the PC. See the example `autoconnect.ini` for configuration.
+This continuously scans for devices and compares them with the configuration, 
+then automatically starts up `ble-serial` (or other tools) if a known device is detected.
+Brings similar convenience as USB adapters, just turn the BLE device on and the serial port shows up on the PC. 
+See the example `autoconnect.ini` for configuration. 
+
+Starting with version 3.0 it can connect to multiple devices in parallel, make sure there are no port conflicts described [above](#multi-device-connection).
+Output from the managing script and all instances are printed to the same terminal in this case. It's possible to add a instance specific prefix to each log line
+with `--name GAP_NAME` and in .ini `name = your-name-here`.
+
+Example launch:
+```console
+[AUTOCONNECT] 2024-12-09 16:35:02,922 | INFO | 20:91:48:4C:4C:54 = UT61E -  JK (RSSI: -76) Services=['0000ffe0-0000-1000-8000-00805f9b34fb', '0000b000-0000-1000-8000-00805f9b34fb']
+[AUTOCONNECT] 2024-12-09 16:35:02,922 | INFO | Found 20:91:48:4C:4C:54 in config!
+[AUTOCONNECT] 2024-12-09 16:35:02,922 | INFO | ['ble-serial', '--dev', '20:91:48:4C:4C:54', '--address-type', 'public', '--port', '/tmp/UT61E', '--name', 'your-name-here', '--timeout', '10', '--mtu', '20']
+[your-name-here] 16:35:02.993 | INFO | linux_pty.py: Port endpoint created on /tmp/UT61E -> /dev/pts/6
+[your-name-here] 16:35:02.993 | INFO | ble_client.py: Receiver set up
+[your-name-here] 16:35:04.252 | INFO | ble_client.py: Trying to connect with 20:91:48:4C:4C:54: UT61E -  JK
+[your-name-here] 16:35:05.922 | INFO | ble_client.py: Device 20:91:48:4C:4C:54 connected
+...
+```
 
 On Linux you can also use the included systemd (user) service to auto start this on boot.
 

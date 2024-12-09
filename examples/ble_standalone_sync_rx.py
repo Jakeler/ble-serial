@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from ble_serial.bluetooth.ble_interface import BLE_interface
+from ble_serial.bluetooth.ble_client import BLE_client
 
 rx_buffer = b''
 rx_available = asyncio.Event()
@@ -11,7 +11,7 @@ def receive_callback(value: bytes):
     rx_buffer = value
     rx_available.set()
 
-async def sendble(ble: BLE_interface, cmd):
+async def sendble(ble: BLE_client, cmd):
     #while True:
     await asyncio.sleep(3.0)
 
@@ -24,7 +24,7 @@ async def sendble(ble: BLE_interface, cmd):
 
     await asyncio.sleep(3.0)
 
-async def commander(ble: BLE_interface):
+async def commander(ble: BLE_client):
     await sendble(ble, b'$C$')
     await sendble(ble, b'$B$')
     await ble.disconnect()
@@ -36,12 +36,13 @@ async def main():
     WRITE_UUID = None
     READ_UUID = None
     DEVICE = "20:91:48:4C:4C:54"
+    WRITE_WITH_RESPONSE = False
 
-    ble = BLE_interface(ADAPTER, SERVICE_UUID)
+    ble = BLE_client(ADAPTER, SERVICE_UUID)
     ble.set_receiver(receive_callback)
 
-    await ble.connect(DEVICE, "public", 10.0)
-    await ble.setup_chars(WRITE_UUID, READ_UUID, "rw")
+    await ble.connect(DEVICE, "public", SERVICE_UUID, 10.0)
+    await ble.setup_chars(WRITE_UUID, READ_UUID, "rw", WRITE_WITH_RESPONSE)
 
     await asyncio.gather(ble.send_loop(), commander(ble))
 

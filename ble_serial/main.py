@@ -3,7 +3,6 @@ import asyncio
 from bleak.exc import BleakError
 from ble_serial import platform_uart as UART
 from ble_serial.ports.tcp_socket import TCP_Socket
-from ble_serial.bluetooth.ble_interface import BLE_interface
 from ble_serial.log.fs_log import FS_log, Direction
 from ble_serial.log.console_log import setup_logger
 from ble_serial import cli
@@ -11,6 +10,12 @@ from ble_serial import cli
 class Main():
     def __init__(self, args: cli.Namespace):
         self.args = args
+
+        if args.gap_role == 'client':
+            from ble_serial.bluetooth.ble_client import BLE_client as BLE
+        elif args.gap_role == 'server':
+            from ble_serial.bluetooth.ble_server import BLE_server as BLE
+        self.BLE_class = BLE
 
     def start(self):
         try:
@@ -31,7 +36,7 @@ class Main():
             else:
                 self.uart = UART(args.port, loop, args.mtu)
 
-            self.bt = BLE_interface(args.adapter, args.service_uuid)
+            self.bt = self.BLE_class(args.adapter, args.gap_name)
 
             if args.filename:
                 self.log = FS_log(args.filename, args.binlog)
@@ -42,12 +47,18 @@ class Main():
                 self.uart.set_receiver(self.bt.queue_send)
 
             self.uart.start()
-            await self.bt.connect(args.device, args.addr_type, args.timeout)
-            await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode, args.write_with_response)
+            
+            if args.gap_role == 'client':
+                await self.bt.connect(args.device, args.addr_type, args.service_uuid, args.timeout)
+                await self.bt.setup_chars(args.write_uuid, args.read_uuid, args.mode, args.write_with_response)
+            elif args.gap_role == 'server':
+                await self.bt.setup_chars(args.service_uuid, args.write_uuid, args.read_uuid, args.mode, args.write_with_response)
+                await self.bt.start(args.timeout)
 
             logging.info('Running main loop!')
             main_tasks = {
                 asyncio.create_task(self.bt.send_loop()),
+                asyncio.create_task(self.bt.check_loop()),
                 asyncio.create_task(self.uart.run_loop())
             }
             done, pending = await asyncio.wait(main_tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -55,12 +66,13 @@ class Main():
             logging.debug(f'Pending Tasks: {[t._coro for t in pending]}')
 
         except BleakError as e:
-            logging.error(f'Bluetooth connection failed: {e}')
+            logging.error(f'Bluetooth connection failed')
+            logging.exception(e)
         ### KeyboardInterrupts are now received on asyncio.run()
         # except KeyboardInterrupt:
         #     logging.info('Keyboard interrupt received')
         except Exception as e:
-            logging.error(f'Unexpected Error: {repr(e)}')
+            logging.exception(e)
         finally:
             logging.warning('Shutdown initiated')
             if hasattr(self, 'uart'):
@@ -76,10 +88,12 @@ class Main():
         # Handles exception from other tasks (inside bleak disconnect, etc)
         # loop.default_exception_handler(context)
         logging.debug(f'Asyncio execption handler called {context["exception"]}')
+        logging.exception(context["exception"])
+
         self.uart.stop_loop()
         self.bt.stop_loop()
 
 def launch():
     args = cli.parse_args()
-    setup_logger(args.verbose)
+    setup_logger(args.verbose, args.gap_role, args.gap_name)
     Main(args).start()
