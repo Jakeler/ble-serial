@@ -1,0 +1,56 @@
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ble-serial"
+version = "2.8.0"
+authors = [{ name = "Jake", email = "ble-serial-pypi@ja-ke.tech" }]
+license = {text = "MIT License"}
+description = "Connects BLE adapters with virtual serial ports"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "bleak >= 0.20.0",
+    "coloredlogs >= 15.0",
+    "pyserial>=3.5 ; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+server = [
+    'bless >= 0.2.6',
+    "pysetupdi; sys_platform == 'win32'",
+]
+
+[project.urls]
+Homepage = "https://github.com/Jakeler/ble-serial"
+Repository = "https://github.com/Jakeler/ble-serial"
+Issues = "https://github.com/Jakeler/ble-serial/issues"
+Changelog = "https://github.com/Jakeler/ble-serial/releases"
+
+
+[project.scripts]
+ble-scan = "ble_serial.scan.main:launch"
+ble-serial =" ble_serial.main:launch"
+ble-com-setup = "ble_serial.setup_com0com:main"
+
+[tool.uv.sources]
+pysetupdi = { url = "https://github.com/gwangyi/pysetupdi/archive/refs/heads/master.zip" }
