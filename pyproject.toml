@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ble-serial"
-version = "2.8.0"
+version = "3.0.0"
 authors = [{ name = "Jake", email = "ble-serial-pypi@ja-ke.tech" }]
 license = {text = "MIT License"}
 description = "Connects BLE adapters with virtual serial ports"
