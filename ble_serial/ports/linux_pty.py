@@ -11,6 +11,7 @@ class UART(ISerial):
         self.loop = ev_loop
         self.mtu = mtu
         self._send_queue = asyncio.Queue()
+        self._stopping = False
 
         self._controller_fd, endpoint_fd = pty.openpty()
         self.endpoint_path = os.ttyname(endpoint_fd)
@@ -39,6 +40,13 @@ class UART(ISerial):
 
     def stop_loop(self):
         logging.info('Stopping serial event loop')
+        self._stopping = True
+        # Clear any pending items so we exit quickly
+        while not self._send_queue.empty():
+            try:
+                self._send_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
         self._send_queue.put_nowait(None)
 
     def remove(self):
@@ -58,6 +66,8 @@ class UART(ISerial):
         return value
 
     def queue_write(self, value: bytes):
+        if self._stopping:
+            return  # Ignore writes during shutdown
         self._send_queue.put_nowait(value)
 
     async def run_loop(self):
