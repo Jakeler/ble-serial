@@ -10,6 +10,7 @@ class BLE_client(BLE_interface):
         self._send_queue = asyncio.Queue()
 
         self.adapter = adapter
+        self._connected_once = False
 
     async def connect(self, addr_str: str, addr_type: str, service_uuid: str, timeout: float):
         scan_args = dict(adapter=self.adapter)
@@ -31,6 +32,7 @@ class BLE_client(BLE_interface):
 
         logging.info(f'Trying to connect with {device}')
         await self.dev.connect()
+        self._connected_once = True
         logging.info(f'Device {self.dev.address} connected')
 
     async def setup_chars(self, write_uuid: str, read_uuid: str, mode: str, write_response_required: bool):
@@ -135,4 +137,8 @@ class BLE_client(BLE_interface):
 
     def handle_disconnect(self, client: BleakClient):
         logging.warning(f'Device {client.address} disconnected')
-        self.stop_loop()
+        # Ignore disconnects that occur during failed initial connection attempts
+        if self._connected_once:
+            self.stop_loop()
+        else:
+            logging.debug('Ignoring pre-connect disconnect callback')
