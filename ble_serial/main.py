@@ -75,10 +75,35 @@ class Main():
             logging.exception(e)
         finally:
             logging.warning('Shutdown initiated')
+
+            # Stop the run loops first (signals tasks to exit gracefully)
+            if hasattr(self, 'uart'):
+                self.uart.stop_loop()
+            if hasattr(self, 'bt'):
+                self.bt.stop_loop()
+
+            # Cancel and await pending tasks before cleanup
+            try:
+                if pending:
+                    for t in pending:
+                        t.cancel()
+                    await asyncio.wait_for(
+                        asyncio.gather(*pending, return_exceptions=True),
+                        timeout=2.0
+                    )
+            except NameError:
+                pass  # pending not defined if we failed before asyncio.wait
+            except asyncio.TimeoutError:
+                logging.warning('Timeout waiting for tasks to cancel')
+
+            # Now safe to disconnect BLE and remove uart
+            if hasattr(self, 'bt'):
+                try:
+                    await asyncio.wait_for(self.bt.disconnect(), timeout=3.0)
+                except asyncio.TimeoutError:
+                    logging.warning('Timeout disconnecting BLE')
             if hasattr(self, 'uart'):
                 self.uart.remove()
-            if hasattr(self, 'bt'):
-                await self.bt.disconnect()
             if hasattr(self, 'log'):
                 self.log.finish()
             logging.info('Shutdown complete.')
